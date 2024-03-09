@@ -8,6 +8,9 @@
 #include <QUrl>
 #include <QMediaFormat>
 #include <QThread>
+#include <QAudioDecoder>
+#include <iostream>
+#include <QDebug>
 
 AudioRecorder::AudioRecorder(QObject *parent)
     : QObject{parent}
@@ -19,30 +22,34 @@ AudioRecorder::AudioRecorder(QObject *parent)
 
 
 void AudioRecorder::record(){
-    QMediaCaptureSession m_captureSession;
-    QAudioDevice defaultMicrophone;
-    for (const QAudioDevice& device : QMediaDevices::audioInputs()) {
-        if (device.isDefault() && device.mode() == QAudioDevice::Input) {
-            defaultMicrophone = device;
-            break;
-        }
-    }
-    QAudioInput * ai = new QAudioInput();
-    ai->setDevice(defaultMicrophone);
-    m_captureSession.setAudioInput(ai);
+    QMediaCaptureSession* session = new QMediaCaptureSession();
+    QAudioInput* audioInput = new QAudioInput();
     QMediaRecorder* recorder = new QMediaRecorder();
-    // m_audioRecorder->setQuality(QMediaRecorder::Quality(ui->qualitySlider->value()));
-    m_captureSession.setRecorder(recorder);
+    session->setAudioInput(audioInput);
+    session->setRecorder(recorder);
     recorder->setMediaFormat(QMediaFormat::Wave);
-    recorder->setOutputLocation(QUrl("C:/Users/farbo/Desktop/university-s6/CN/ca1/ca1/test.wav"));
+    recorder->setOutputLocation(QUrl::fromLocalFile("C:/Users/farbo/Desktop/university-s6/CN/ca1/ca1/test.wav"));
     recorder->setAudioSampleRate(48000);
     recorder->setAudioChannelCount(1);
     recorder->record();
-    QThread::msleep(32500);
+    QThread::msleep(3250);
     recorder->stop();
 
+    // READ
+    QAudioFormat desiredFormat;
+    desiredFormat.setChannelCount(2);
+    desiredFormat.setSampleFormat(QAudioFormat::Int16);
+    desiredFormat.setSampleRate(48000);
+    decoder = new QAudioDecoder();
+    decoder->setAudioFormat(desiredFormat);
+    decoder->setSource(QUrl::fromLocalFile("C:/Users/farbo/Desktop/university-s6/CN/ca1/ca1/test.wav"));
+    connect(decoder, SIGNAL(bufferReady()), this, SLOT(readBuffer()));
+    decoder->start();
+}
 
 
+void AudioRecorder::readBuffer(){
+    qDebug() << "Debug Message";
 }
 
 // void AudioRecorder::handleAudioData(){
