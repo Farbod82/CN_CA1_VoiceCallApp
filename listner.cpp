@@ -30,7 +30,7 @@ void Listner::do_accept()
             std::cout << "creating session on: "
                       << socket.remote_endpoint().address().to_string()
                       << ":" << socket.remote_endpoint().port() << '\n';
-            std::make_shared<signalingServer>(std::move(socket))->run();
+            std::make_shared<signalingServer>(std::move(socket))->wait_for_request();
         }
         else
         {
