@@ -1,39 +1,62 @@
-
-#ifndef SIGNALING_SERVER_H
-#define SIGNALING_SERVER_H
-
-#include <boost/asio.hpp>
-#include<QDebug>
-#include <QThread>
+// #ifndef LISTNER_H
+// #define LISTNER_H
 
 
-using namespace boost::asio;
-using namespace std;
-using ip::tcp;
+// #include <QObject>
+// #include <QTcpServer>
 
 
+// class Listner : public QObject {
+//     Q_OBJECT
 
+// public:
+//     Listner(qint16 port = 8080);
+
+// private slots:
+//     void handleNewConnection();
+//     void handleClientData();
+//     void handleClientDisconnect();
+
+// private:
+//     QTcpServer* server;
+// };
+
+// #endif // LISTNER_H
+
+#ifndef LISTNER_H
+#define LISTNER_H
+
+
+#include <QObject>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <vector>
 
 struct Client{
-    string name;
-    string address;
+    std::string name;
+    std::string address;
     int port;
 };
 
-class signalingServer : public std::enable_shared_from_this<signalingServer>
-{
+class TcpServer : public QObject {
+    Q_OBJECT
+
 public:
-    signalingServer(tcp::socket socket);
-    void run();
-    void handle_requests(std::string request_data);
-    Client *find_user_by_name(string name);
-    void wait_for_request();
-    void send_response(string response, Client *reciever, int response_port);
-    string extract_command_info(string data, int &response_port, string command);
+    TcpServer();
+    // void connectServer();
+    void newConnection();
+    void runServer2();
+    void handleRequests(std::string message, QTcpSocket *socket);
+    std::string extractCommandInfo(std::string data);
+    Client* findUserByName(std::string name);
+    void sendResponse(std::string response, QTcpSocket *socket);
+private slots:
+    void receiveMessage();
+    // void connected();
 private:
-    static vector<Client*> clients;
-    tcp::socket m_socket;
-    boost::asio::streambuf m_buffer;
+    QTcpServer* server;
+    QTcpSocket* incomingSocket;
+    std::vector<Client*> clients;
 };
 
-#endif // SIGNALING_SERVER_H
+#endif
