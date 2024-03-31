@@ -2,7 +2,7 @@
 #define AUDIORECORDER_H
 
 #include <QObject>
-#include<QMediaRecorder>
+#include <QMediaRecorder>
 #include <QAudioInput>
 #include <QMediaCaptureSession>
 #include <QAudioDecoder>

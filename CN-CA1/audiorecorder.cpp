@@ -28,7 +28,7 @@ void AudioRecorder::record(){
     session->setAudioInput(audioInput);
     session->setRecorder(recorder);
     recorder->setMediaFormat(QMediaFormat::Wave);
-    recorder->setOutputLocation(QUrl::fromLocalFile("C:/Users/farbo/Desktop/university-s6/CN/ca1/ca1/test.wav"));
+    recorder->setOutputLocation(QUrl::fromLocalFile("G:/Documents/GitHub/test.wav"));
     recorder->setAudioSampleRate(48000);
     recorder->setAudioChannelCount(1);
     recorder->record();
