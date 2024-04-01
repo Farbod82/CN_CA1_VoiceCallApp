@@ -2,25 +2,25 @@
 #include "mainwindow.h"
 
 #include <QApplication>
-#include<QtNetwork>
+#include <QtNetwork>
 
-
-#include "signaling_server.h"
 #include "client.h"
+#include "signaling_server.h"
 
-
-
-void runClient2() {
-    TcpClient* c = new TcpClient("CONNECT Farbod");
+void runClient2()
+{
+    TcpClient *c = new TcpClient("CONNECT Farbod");
     c->runClient2();
 }
-void runClient3() {
-    TcpClient* c = new TcpClient("CALL Farbod");
+void runClient3()
+{
+    TcpClient *c = new TcpClient("CALL Farbod");
     c->runClient2();
 }
 
-void runServer2(){
-    TcpServer* s = new TcpServer();
+void runServer2()
+{
+    TcpServer *s = new TcpServer();
     s->runServer2();
 }
 
@@ -32,15 +32,9 @@ int main(int argc, char *argv[])
     QThread clientThread2;
     // AudioRecorder ar;
     // ar.record();
-    QObject::connect(&serverThread, &QThread::started, [](){
-        runServer2();
-    });
-    QObject::connect(&clientThread, &QThread::started, [](){
-        runClient2();
-    });
-    QObject::connect(&clientThread2, &QThread::started, [](){
-        runClient3();
-    });
+    QObject::connect(&serverThread, &QThread::started, []() { runServer2(); });
+    QObject::connect(&clientThread, &QThread::started, []() { runClient2(); });
+    QObject::connect(&clientThread2, &QThread::started, []() { runClient3(); });
 
     serverThread.start();
     clientThread.start();
