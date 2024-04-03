@@ -15,15 +15,21 @@ TcpServer::TcpServer() : QObject(), server(new QTcpServer()) {}
 
 
 
-std::string TcpServer::extractCommandInfo(std::string data){
+std::vector<std::string> TcpServer::extractCommandInfo(std::string data,std::string message){
     std::istringstream iss(data);
     std::vector<std::string> words;
-
     std::string word;
-    while (std::getline(iss, word, ' ')) {
-        words.push_back(word);
+    if(message.compare("connect") == 0){
+        while (std::getline(iss, word, ' ')) {
+            words.push_back(word);
+        }
     }
-    return words[1];
+    else{
+        while (std::getline(iss, word, ',')) {
+            words.push_back(word);
+        }
+    }
+    return words;
 }
 
 
@@ -42,21 +48,22 @@ void TcpServer::sendResponse(std::string response,QTcpSocket* socket){
 
 void TcpServer::handleRequests(std::string message,QTcpSocket* socket){
     if(strncmp(message.c_str(),"CONNECT",7) ==0){
-        std::string name = extractCommandInfo(message);
+        std::vector<std::string> words = extractCommandInfo(message,"connect");
         std::string address = socket->peerAddress().toString().toStdString();
         int port = socket->peerPort();
         Client* new_client = new Client;
         new_client->port = port;
-        new_client->name = name;
+        new_client->name = words[1];
         new_client->address = address;
+        new_client->socket = socket;
         TcpServer::clients.push_back(new_client);
     }
     else if(strncmp(message.c_str(),"CALL",4)==0){
         int response_port;
-        std::string name = extractCommandInfo(message);
-        Client* reciever = findUserByName(name);
-        std::string response = "RESPONSE " + reciever->address + " " + std::to_string(reciever->port);
-        sendResponse(response,socket);
+        std::vector<std::string> words = extractCommandInfo(message,"call");
+        Client* reciever = findUserByName(words[1]);
+        std::string response = "RESPONSE," + words[2] + "," + words[3];
+        sendResponse(response,reciever->socket);
     }
     return;
 }

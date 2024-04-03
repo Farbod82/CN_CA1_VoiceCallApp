@@ -8,7 +8,8 @@ TcpClient::TcpClient(std::string message) : QObject(), socket(new QTcpSocket()) 
 }
 
 void TcpClient::connected() {
-    socket->write(_message.c_str());
+    // socket->write(_message.c_str());
+    qDebug() << "connected";
 }
 void TcpClient::receiveResponse(){
     QTcpSocket* socket = qobject_cast<QTcpSocket*>(sender());
@@ -21,6 +22,10 @@ void TcpClient::runClient2() {
     connect(socket,&QTcpSocket::readyRead,this, &TcpClient::receiveResponse);
     socket->connectToHost(QHostAddress::LocalHost, 8080, QIODevice::ReadWrite);
     while (!socket->waitForConnected(30000));
+}
+
+void TcpClient::sendMessage(std::string message){
+    socket->write(message.c_str());
 }
 
 

@@ -19,6 +19,7 @@ public:
     TcpClient(std::string message);
     // void connectServer();
     void runClient2();
+    void sendMessage(std::string message);
 private slots:
     void connected();
     void receiveResponse();

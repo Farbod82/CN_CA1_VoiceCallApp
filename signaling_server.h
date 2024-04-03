@@ -35,6 +35,7 @@
 struct Client{
     std::string name;
     std::string address;
+    QTcpSocket* socket;
     int port;
 };
 
@@ -47,9 +48,9 @@ public:
     void newConnection();
     void runServer2();
     void handleRequests(std::string message, QTcpSocket *socket);
-    std::string extractCommandInfo(std::string data);
     Client* findUserByName(std::string name);
     void sendResponse(std::string response, QTcpSocket *socket);
+    std::vector<std::string> extractCommandInfo(std::string data, std::string message);
 private slots:
     void receiveMessage();
     // void connected();
