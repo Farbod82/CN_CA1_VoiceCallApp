@@ -22,6 +22,7 @@ private:
     rtc::PeerConnection pc;
     rtc::DataChannel dc;
     AudioRecorder audio_recorder;
+    std::vector<std::string> local_candidates;
 };
 
 #endif // CONNECTION_H

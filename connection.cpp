@@ -16,6 +16,8 @@ connection::connection(QObject* parent) : QObject(parent), pc(config) {
         local_candidates.push_back( std::string(candidate) );
     });
 
+    pc->setLocalDescription(rtc::Description::Type::Offer);
+
     pc.onLocalDescription([](rtc::Description sdp) {
         // Send the SDP to the remote peer
         MY_SEND_DESCRIPTION_TO_REMOTE(std::string(sdp));
@@ -70,28 +72,6 @@ void offere(){
         //     std::cout << message << std::endl;
         // }
      //    });
-
-        // int sock = socket(AF_INET, SOCK_DGRAM, 0);
-        // struct sockaddr_in addr = {};
-        // addr.sin_family = AF_INET;
-        // addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-        // addr.sin_port = htons(6000);
-
-        // if (bind(sock, reinterpret_cast<const sockaddr *>(&addr), sizeof(addr)) < 0)
-        //     throw std::runtime_error("Failed to bind UDP socket on 127.0.0.1:6000");
-
-        // int rcvBufSize = 212992;
-        // setsockopt(sock, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<const char *>(&rcvBufSize),
-        //             sizeof(rcvBufSize));
-
-        // const rtc::SSRC ssrc = 42;
-        // rtc::Description::Video media("video", rtc::Description::Direction::SendOnly);
-        // media.addH264Codec(96); // Must match the payload type of the external h264 RTP stream
-        // media.addSSRC(ssrc, "video-send");
-        // auto track = pc->addTrack(media);
-
-        pc->setLocalDescription(rtc::Description::Type::Offer);
-
 
 
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
