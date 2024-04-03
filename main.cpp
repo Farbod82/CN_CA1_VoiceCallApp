@@ -4,10 +4,8 @@
 #include "offerer.h"
 
 #include <QApplication>
-#include<QtNetwork>
+#include <QtNetwork>
 
-
-#include "signaling_server.h"
 #include "client.h"
 #include <rtc/rtc.hpp>
 
@@ -25,8 +23,9 @@ void runClient3() {
     of.runOfferer("Farbod","Ali");
 }
 
-void runServer2(){
-    TcpServer* s = new TcpServer();
+void runServer2()
+{
+    TcpServer *s = new TcpServer();
     s->runServer2();
 }
 void process_buff(const QByteArray& data){
@@ -43,15 +42,9 @@ int main(int argc, char *argv[])
     QThread clientThread2;
     // AudioRecorder ar;
     // ar.record();
-    QObject::connect(&serverThread, &QThread::started, [](){
-        runServer2();
-    });
-    QObject::connect(&clientThread, &QThread::started, [](){
-        runClient2();
-    });
-    QObject::connect(&clientThread2, &QThread::started, [](){
-        runClient3();
-    });
+    QObject::connect(&serverThread, &QThread::started, []() { runServer2(); });
+    QObject::connect(&clientThread, &QThread::started, []() { runClient2(); });
+    QObject::connect(&clientThread2, &QThread::started, []() { runClient3(); });
 
     serverThread.start();
     clientThread.start();

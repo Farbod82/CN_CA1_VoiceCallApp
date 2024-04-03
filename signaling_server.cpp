@@ -6,8 +6,6 @@
 #include <sstream>
 
 
-
-
 struct Client;
 
 
