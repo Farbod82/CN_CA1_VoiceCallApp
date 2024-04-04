@@ -4,6 +4,8 @@
 #include <QTcpSocket>
 #include <QObject>
 #include <sstream>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 
 struct Client;
@@ -63,12 +65,21 @@ void TcpServer::handleRequests(std::string message,QTcpSocket* socket){
         std::string response = "RESPONSE," + words[2] + "," + words[3];
         sendResponse(response,reciever->socket);
     }
+    else{
+        QString q_string_message = QString::fromStdString(message);
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(q_string_message.toUtf8());
+        QJsonObject jsonObject = jsonDocument.object();
+        QString name = jsonObject["name"].toString();
+        Client* reciever = findUserByName(name.toStdString());
+        reciever->socket->write(message.c_str());
+    }
     return;
 }
 
 void TcpServer::receiveMessage() {
     QTcpSocket* socket = qobject_cast<QTcpSocket*>(sender());
     std::string message = socket->readAll().data();
+    qDebug() << "some one sent something";
     qDebug() << message;
     handleRequests(message,socket);
 }

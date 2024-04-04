@@ -5,12 +5,14 @@
 #include <QJsonObject>
 #include <iostream>
 
-TcpClient::TcpClient(std::string message) : QObject(), socket(new QTcpSocket()) {
+TcpClient::TcpClient(std::string message,std::string role) : QObject(), socket(new QTcpSocket()) {
     _message = message;
+    _role = role;
 }
 
 void TcpClient::connected() {
-    // socket->write(_message.c_str());
+    if (_role.compare("answerer") == 0)
+        socket->write(("CONNECT "+ _message).c_str());
     qDebug() << "connected";
 }
 void TcpClient::receiveResponse(){

@@ -9,12 +9,12 @@
 
 // #include <rtc/rtc.hpp>
 
-offerer::offerer(std::string name, QObject *parent)
+offerer::offerer(std::string name,std::string role, QObject *parent)
     : QObject{parent}
 {
-    myclient = new TcpClient("CONNECT "+name);
-    myclient->runClient2();
+    myclient = new TcpClient(name,role);
     connect(myclient, &TcpClient::set_remote, this, &offerer::set_remote);
+    myclient->runClient2();
 
 }
 
@@ -47,6 +47,7 @@ void offerer::runAnswerer(std::string name){
 
 QJsonDocument offerer::prepare_sdp_and_candidate_message(){
     QJsonObject sdp_candidate_object;
+    sdp_candidate_object["name"] = "Ahmad";
     sdp_candidate_object["type"] = "set_remote";
     sdp_candidate_object["sdp"] = QString::fromStdString(description);
 

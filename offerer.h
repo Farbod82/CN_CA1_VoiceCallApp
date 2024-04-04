@@ -11,11 +11,12 @@ class offerer : public QObject
 {
     Q_OBJECT
 public:
-    explicit offerer(std::string name, QObject *parent = nullptr);
+    // explicit offerer(std::string name, QObject *parent = nullptr);
     void runOfferer(std::string answerer_name);
     void runAnswerer(std::string name);
     void send_message(std::string message);
     void close_connection();
+    explicit offerer(std::string name, std::string role, QObject *parent=nullptr);
 signals:
 private:
     std::vector<std::string> local_candidates;

@@ -16,7 +16,7 @@ void runClient2() {
     // TcpClient* c = new TcpClient("CONNECT Ali");
     // c->runClient2();
     // c->sendMessage("CONNECT Ali");
-    offerer of("Ahmad");
+    offerer of("Ahmad","answerer");
     of.runAnswerer("Ali");
 
     std::cout << "#########################################\n";
@@ -26,7 +26,7 @@ void runClient2() {
 void runClient3() {
     // TcpClient* c = new TcpClient("CALL Farbod");
     // c->runClient2();
-    offerer of("Farbod");
+    offerer of("Farbod","offerer");
     of.runOfferer("Ali");
 }
 
@@ -55,9 +55,9 @@ int main(int argc, char *argv[])
     QObject::connect(&clientThread2, &QThread::started, []() { runClient3(); });
 
     serverThread.start();
-    clientThread2.start();
-    QThread::msleep(1000);
     clientThread.start();
+    QThread::msleep(5000);
+    clientThread2.start();
     QThread::msleep(1000);
     // AudioCapture ac;
     // QObject::connect(&ac,&AudioCapture::bufferReady,process_buff);

@@ -16,7 +16,7 @@ class TcpClient : public QObject {
     Q_OBJECT
 
 public:
-    TcpClient(std::string message);
+    TcpClient(std::string message, std::string role);
     // void connectServer();
     void runClient2();
     void sendMessage(std::string message);
@@ -26,6 +26,7 @@ private slots:
 private:
     QTcpSocket* socket;
     std::string _message;
+    std::string _role;
 signals:
     void set_remote(QString json_message);
 };
