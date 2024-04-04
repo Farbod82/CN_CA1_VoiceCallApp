@@ -28,7 +28,7 @@ private:
     std::string _message;
     std::string _role;
 signals:
-    void set_remote(QString json_message);
+    void set_remote_signal(QString json_message);
 };
 
 #endif // CLIENT_H

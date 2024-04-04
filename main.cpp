@@ -17,7 +17,7 @@ void runClient2() {
     // c->runClient2();
     // c->sendMessage("CONNECT Ali");
     offerer of("Ahmad","answerer");
-    of.runAnswerer("Ali");
+    of.runAnswerer("Farbod");
 
     std::cout << "#########################################\n";
     of.send_message("Hello Farbod!");
@@ -27,7 +27,7 @@ void runClient3() {
     // TcpClient* c = new TcpClient("CALL Farbod");
     // c->runClient2();
     offerer of("Farbod","offerer");
-    of.runOfferer("Ali");
+    of.runOfferer("Ahmad");
 }
 
 

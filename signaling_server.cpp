@@ -70,6 +70,7 @@ void TcpServer::handleRequests(std::string message,QTcpSocket* socket){
         QJsonDocument jsonDocument = QJsonDocument::fromJson(q_string_message.toUtf8());
         QJsonObject jsonObject = jsonDocument.object();
         QString name = jsonObject["name"].toString();
+        qDebug() << "\n receiver : " << name.toStdString() << "\n";
         Client* reciever = findUserByName(name.toStdString());
         reciever->socket->write(message.c_str());
     }

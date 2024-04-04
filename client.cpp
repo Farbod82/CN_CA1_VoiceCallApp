@@ -16,19 +16,18 @@ void TcpClient::connected() {
     qDebug() << "connected";
 }
 void TcpClient::receiveResponse(){
-    std::cout << "\nzzzzzzzzzzzzzzzzzzzzzz\n";
     QTcpSocket* socket = qobject_cast<QTcpSocket*>(sender());
     std::string message = socket->readAll().data();
     QString q_string_message = QString::fromStdString(message);
     qDebug() << "response from server: " << message;
-    std::cout << "response from server: " << message;
 
     QJsonDocument jsonDocument = QJsonDocument::fromJson(q_string_message.toUtf8());
     if (!jsonDocument.isNull()) {
         if (jsonDocument.isObject()) {
             QJsonObject jsonObject = jsonDocument.object();
             if (jsonObject["type"] == "set_remote"){
-                emit set_remote(q_string_message);
+                qDebug() << "\nZZZZZZZZZZZZZZZZZZZZZZ";
+                emit set_remote_signal(q_string_message);
             }
         }
     }

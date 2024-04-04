@@ -13,7 +13,7 @@ offerer::offerer(std::string name,std::string role, QObject *parent)
     : QObject{parent}
 {
     myclient = new TcpClient(name,role);
-    connect(myclient, &TcpClient::set_remote, this, &offerer::set_remote);
+    connect(myclient, &TcpClient::set_remote_signal, this, &offerer::set_remote);
     myclient->runClient2();
 
 }
@@ -45,9 +45,9 @@ void offerer::runAnswerer(std::string name){
 
 }
 
-QJsonDocument offerer::prepare_sdp_and_candidate_message(){
+QJsonDocument offerer::prepare_sdp_and_candidate_message(std::string receiver){
     QJsonObject sdp_candidate_object;
-    sdp_candidate_object["name"] = "Ahmad";
+    sdp_candidate_object["name"] = QString::fromStdString(receiver);
     sdp_candidate_object["type"] = "set_remote";
     sdp_candidate_object["sdp"] = QString::fromStdString(description);
 
@@ -71,13 +71,14 @@ void offerer::runOfferer(std::string answerer_name){
 
     QThread::sleep(1);
     std::cout << "\n Offere 3";
-    QJsonDocument json_message = prepare_sdp_and_candidate_message();
+    QJsonDocument json_message = prepare_sdp_and_candidate_message(answerer_name);
 
     std::cout << "\n Offere 4";
     myclient->sendMessage(json_message.toJson().toStdString());
 }
 
 void offerer::set_remote(QString json_message){
+    qDebug() << "\nXXXXXXXXXXXXXXXXXXXXXX";
     QJsonDocument jsonDocument = QJsonDocument::fromJson(json_message.toUtf8());
     QJsonObject jsonObject = jsonDocument.object();
     pc->setRemoteDescription(rtc::Description(jsonObject["set_remote"].toString().toStdString()));
@@ -88,7 +89,7 @@ void offerer::set_remote(QString json_message){
         std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
     }
     if (role == "answerer"){
-        QJsonDocument json_message = prepare_sdp_and_candidate_message();
+        QJsonDocument json_message = prepare_sdp_and_candidate_message("Farbod");//must change
         myclient->sendMessage(json_message.toJson().toStdString());
     }
 }

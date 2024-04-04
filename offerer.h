@@ -26,7 +26,7 @@ private:
     std::shared_ptr<rtc::DataChannel> dc;
     void make_datachannel();
     void initialize_peer_connection();
-    QJsonDocument prepare_sdp_and_candidate_message();
+    QJsonDocument prepare_sdp_and_candidate_message(std::string receiver);
     std::string role;
 
 
