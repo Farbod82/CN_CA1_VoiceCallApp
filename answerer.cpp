@@ -1,147 +1,154 @@
-// #include "answerer.h"
-// #include "rtc/global.hpp"
-// #include "client.h"
-// #include <rtc/configuration.hpp>
-// #include <rtc/peerconnection.hpp>
-// #include <Qvector>
-// #include <sstream>
+#include "answerer.h"
+#include "client.h"
+#include "rtc/global.hpp"
+#include <rtc/configuration.hpp>
+#include <rtc/peerconnection.hpp>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
-// answerer::answerer(QObject *parent)
-//     : QObject{parent}
-// {}
+using std::shared_ptr;
+// #include <rtc/rtc.hpp>
 
-// using std::shared_ptr;
+answerer::answerer(std::string name,std::string role, QObject *parent)
+    : QObject{parent},socket(new QTcpSocket())
+{
+    _name = name;
+
+    // myclient = new TcpClient(name,role);
+    // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
+    // myclient->runClient2();
+    connect(socket, &QTcpSocket::connected, this, &answerer::connected);
+    connect(socket,&QTcpSocket::readyRead,this, &answerer::recieveResponse);
+    socket->connectToHost(QHostAddress::LocalHost, 8080, QIODevice::ReadWrite);
+    while (!socket->waitForConnected(30000));
+}
+
+void answerer::connected(){
+    qDebug() << "connected";
+    socket->write(("CONNECT " + _name).c_str());
+}
+
+void answerer::recieveResponse(){
+    qDebug() << "Im fking here";
+    QTcpSocket* _socket = qobject_cast<QTcpSocket*>(sender());
+    std::string message = _socket->readAll().data();
+    QString q_string_message = QString::fromStdString(message);
+    // std::cout << "response from server: " << message;
+
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(q_string_message.toUtf8());
+    if (!jsonDocument.isNull()) {
+        if (jsonDocument.isObject()) {
+            QJsonObject jsonObject = jsonDocument.object();
+            if (jsonObject["type"] == "set_remote"){
+                set_remote(q_string_message);
+            }
+        }
+    }
+}
+
+void answerer::runAnswerer(){
+    role = "answerer";
+    std::cout << "\nAnswerer 1";
+    rtc::InitLogger(rtc::LogLevel::Warning);
+    initialize_peer_connection();    
+    std::cout << "\nAnswerer 2";
+    shared_ptr<rtc::DataChannel> dc;
+    pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
+        std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
+        dc = _dc;
+
+        dc->onClosed(
+            [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
+
+        dc->onMessage([](auto data) {
+            if (std::holds_alternative<std::string>(data)) {
+                std::cout << "[Received message: " << std::get<std::string>(data) << "]"
+                          << std::endl;
+            }
+        });
+    });
+    // QThread::sleep(1);
+    socket->waitForReadyRead();
+    QJsonDocument json_message = prepare_sdp_and_candidate_message();
+    // QThread::sleep(1);
+    socket->write(json_message.toJson().toStdString().c_str());
+    socket->waitForReadyRead();
+    //send message in slot function !
+
+}
+
+QJsonDocument answerer::prepare_sdp_and_candidate_message(){
+    QJsonObject sdp_candidate_object;
+    sdp_candidate_object["reciever"] = "Farbod";
+    sdp_candidate_object["sender"] = "NoNeed";
+    sdp_candidate_object["type"] = "set_remote";
+    sdp_candidate_object["sdp"] = QString::fromStdString(description);
+
+    QJsonArray candidates;
+    for (auto cand : local_candidates){
+        candidates.append(QString::fromStdString(cand));
+    }
+    sdp_candidate_object["candidates"] = candidates;
+    QJsonDocument json_message(sdp_candidate_object);
+    return json_message;
+}
+
+void answerer::set_remote(QString message){
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(message.toUtf8());
+    QJsonObject jsonObject = jsonDocument.object();
+    pc->setRemoteDescription(rtc::Description(jsonObject["sdp"].toString().toStdString()));
+    QJsonArray candidate_array = jsonObject["candidates"].toArray();
+    for (int i = 0; i < candidate_array.size(); ++i) {
+        pc->addRemoteCandidate(rtc::Candidate(candidate_array.at(i).toString().toStdString()));
+        // qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
+        // std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
+    }
+    // if (role == "answerer"){
+    qDebug() << "set answerer done";
+    //     myclient->sendMessage(json_message.toJson().toStdString());
+    // }
+}
 
 
-// void answerer::runAnswerer(std::string name){
-//     rtc::InitLogger(rtc::LogLevel::Warning);
+void answerer::initialize_peer_connection(){
+    rtc::Configuration config;
+    config.iceServers.emplace_back("stun.l.google.com:19302");
 
-//     rtc::Configuration config;
-//     config.iceServers.emplace_back("stun.l.google.com:19302");
-//     TcpClient *client = new TcpClient("ANSWERER " +name,);
-//     auto pc = std::make_shared<rtc::PeerConnection>(config);
+    pc = std::make_shared<rtc::PeerConnection>(config);
 
-//     pc->onLocalDescription([](rtc::Description description) {
-//         std::cout << "Local Description (Paste this to the other peer):" << std::endl;
-//         std::cout << std::string(description) << std::endl;
-//     });
+    pc->onLocalDescription([this](rtc::Description _description) {
+        description = std::string(_description);
+        qDebug() << "hey";
+    });
 
-//     pc->onLocalCandidate([](rtc::Candidate candidate) {
-//         std::cout << "Local Candidate (Paste this to the other peer after the local description):"
-//                   << std::endl;
-//         std::cout << std::string(candidate) << std::endl << std::endl;
-//     });
+    pc->onLocalCandidate([this](rtc::Candidate _candidate) {
+        local_candidates.push_back(std::string(_candidate));
+        qDebug() << "hoy";
+    });
 
-//     pc->onStateChange([](rtc::PeerConnection::State state) {
-//         std::cout << "[State: " << state << "]" << std::endl;
-//     });
-//     pc->onGatheringStateChange([](rtc::PeerConnection::GatheringState state) {
-//         std::cout << "[Gathering State: " << state << "]" << std::endl;
-//     });
-//     shared_ptr<rtc::DataChannel> dc;
-//     pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
-//         std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
-//         dc = _dc;
 
-//         dc->onClosed(
-//             [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
+    pc->onStateChange([](rtc::PeerConnection::State state) {
+        std::cout << "[State: " << state << "]" << std::endl;
+    });
 
-//         dc->onMessage([](auto data) {
-//             if (std::holds_alternative<std::string>(data)) {
-//                 std::cout << "[Received message: " << std::get<std::string>(data) << "]"
-//                           << std::endl;
-//             }
-//         });
-//     });
+    pc->onGatheringStateChange([](rtc::PeerConnection::GatheringState state) {
+        std::cout << "[Gathering State: " << state << "]" << std::endl;
+    });
+}
 
-//     bool exit = false;
-//     while (!exit) {
-//         std::cout
-//             << std::endl
-//             << "**********************************************************************************"
-//                "*****"
-//             << std::endl
-//             << "* 0: Exit /"
-//             << " 1: Enter remote description /"
-//             << " 2: Enter remote candidate /"
-//             << " 3: Send message /"
-//             << " 4: Print Connection Info *" << std::endl
-//             << "[Command]: ";
+void answerer::send_message(std::string message){
+    if (!dc || !dc->isOpen()) {
+        std::cout << "** Channel is not Open ** ";
+        return;
+    }
+    dc->send(message);
+}
 
-//         int command = -1;
-//         std::cin >> command;
-//         std::cin.ignore();
+void answerer::close_connection(){
+    if (dc)
+        dc->close();
 
-//         switch (command) {
-//         case 0: {
-//             exit = true;
-//             break;
-//         }
-//         case 1: {
-//             // Parse Description
-//             std::cout << "[Description]: ";
-//             std::string sdp, line;
-//             while (getline(std::cin, line) && !line.empty()) {
-//                 sdp += line;
-//                 sdp += "\r\n";
-//             }
-//             std::cout << sdp;
-//             pc->setRemoteDescription(sdp);
-//             break;
-//         }
-//         case 2: {
-//             // Parse Candidate
-//             std::cout << "[Candidate]: ";
-//             std::string candidate;
-//             getline(std::cin, candidate);
-//             pc->addRemoteCandidate(candidate);
-//             break;
-//         }
-//         case 3: {
-//             // Send Message
-//             if (!dc || !dc->isOpen()) {
-//                 std::cout << "** Channel is not Open ** ";
-//                 break;
-//             }
-//             std::cout << "[Message]: ";
-//             std::string message;
-//             getline(std::cin, message);
-//             dc->send(message);
-//             break;
-//         }
-//         case 4: {
-//             // Connection Info
-//             if (!dc || !dc->isOpen()) {
-//                 std::cout << "** Channel is not Open ** ";
-//                 break;
-//             }
-//             rtc::Candidate local, remote;
-//             std::optional<std::chrono::milliseconds> rtt = pc->rtt();
-//             if (pc->getSelectedCandidatePair(&local, &remote)) {
-//                 std::cout << "Local: " << local << std::endl;
-//                 std::cout << "Remote: " << remote << std::endl;
-//                 std::cout << "Bytes Sent:" << pc->bytesSent()
-//                           << " / Bytes Received:" << pc->bytesReceived() << " / Round-Trip Time:";
-//                 if (rtt.has_value())
-//                     std::cout << rtt.value().count();
-//                 else
-//                     std::cout << "null";
-//                 std::cout << " ms";
-//             } else {
-//                 std::cout << "Could not get Candidate Pair Info" << std::endl;
-//             }
-//             break;
-//         }
-//         default: {
-//             std::cout << "** Invalid Command ** " << std::endl;
-//             break;
-//         }
-//         }
-//     }
-
-//     if (dc)
-//         dc->close();
-
-//     if (pc)
-//         pc->close();
-// }
+    if (pc)
+        pc->close();
+}

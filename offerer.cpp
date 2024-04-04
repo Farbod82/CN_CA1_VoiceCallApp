@@ -1,3 +1,4 @@
+#include "audio_capture.h"
 #include "client.h"
 #include "offerer.h"
 #include "rtc/global.hpp"
@@ -9,45 +10,58 @@
 
 // #include <rtc/rtc.hpp>
 
-offerer::offerer(std::string name,std::string role, QObject *parent)
-    : QObject{parent}
+offerer::offerer(std::string _offerer_name,std::string _answerer_name, QObject *parent)
+    : QObject{parent},socket(new QTcpSocket())
 {
-    myclient = new TcpClient(name,role);
-    connect(myclient, &TcpClient::set_remote_signal, this, &offerer::set_remote);
-    myclient->runClient2();
+    // myclient = new TcpClient(name,role);
+    // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
+    // myclient->runClient2();
+    offerer_name = _offerer_name;
+    answerer_name = _answerer_name;
+    connect(socket, &QTcpSocket::connected, this, &offerer::connected);
+    connect(socket,&QTcpSocket::readyRead,this, &offerer::recieveResponse);
+    socket->connectToHost(QHostAddress::LocalHost, 8080, QIODevice::ReadWrite);
+    while (!socket->waitForConnected(30000));
 
 }
 
-void offerer::runAnswerer(std::string name){
-    role = "answerer";
-    std::cout << "\nAnswerer 1";
-    rtc::InitLogger(rtc::LogLevel::Warning);
-    initialize_peer_connection();
+void offerer::startPhoneCall(){
+    AudioCapture* ac = new AudioCapture(dc);
 
-    std::cout << "\nAnswerer 2";
-    pc->onDataChannel([&](std::shared_ptr<rtc::DataChannel> _dc) {
-        std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
-        dc = _dc;
+}
 
-        dc->onClosed(
-            [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
+void offerer::sendToDataChannel(const QByteArray& data){
+    // dc->sendBuffer(data);
+    dc->send("hello");
+}
 
-        dc->onMessage([](auto data) {
-            if (std::holds_alternative<std::string>(data)) {
-                std::cout << "[Received message: " << std::get<std::string>(data) << "]"
-                          << std::endl;
+void offerer::connected(){
+    qDebug() << "connected";
+}
+
+void offerer::recieveResponse(){
+    qDebug() << "Im fking here";
+    QTcpSocket* _socket = qobject_cast<QTcpSocket*>(sender());
+    std::string message = _socket->readAll().data();
+    QString q_string_message = QString::fromStdString(message);
+    // std::cout << "response from server: " << message;
+
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(q_string_message.toUtf8());
+    if (!jsonDocument.isNull()) {
+        if (jsonDocument.isObject()) {
+            QJsonObject jsonObject = jsonDocument.object();
+            if (jsonObject["type"] == "set_remote"){
+                set_remote(q_string_message);
             }
-        });
-    });
-    QThread::sleep(1);
-
-    //send message in slot function !
-
+        }
+    }
 }
 
-QJsonDocument offerer::prepare_sdp_and_candidate_message(std::string receiver){
+
+QJsonDocument offerer::prepare_sdp_and_candidate_message(){
     QJsonObject sdp_candidate_object;
-    sdp_candidate_object["name"] = QString::fromStdString(receiver);
+    sdp_candidate_object["reciever"] =  answerer_name.c_str();
+    sdp_candidate_object["sender"]  = offerer_name.c_str();
     sdp_candidate_object["type"] = "set_remote";
     sdp_candidate_object["sdp"] = QString::fromStdString(description);
 
@@ -61,50 +75,60 @@ QJsonDocument offerer::prepare_sdp_and_candidate_message(std::string receiver){
 }
 
 void offerer::runOfferer(std::string answerer_name){
-    role = "offerer";
     rtc::InitLogger(rtc::LogLevel::Warning);
-    std::cout << "\n Offere 1";
+    // std::cout << "\n Offere 1";
     initialize_peer_connection();
 
-    std::cout << "\n Offere 2";
+    // std::cout << "\n Offere 2";
     make_datachannel();
 
-    QThread::sleep(1);
-    std::cout << "\n Offere 3";
-    QJsonDocument json_message = prepare_sdp_and_candidate_message(answerer_name);
+    // std::cout << "\n Offere 3";
+    // QThread::sleep(1);
+    QJsonDocument json_message = prepare_sdp_and_candidate_message();
 
-    std::cout << "\n Offere 4";
-    myclient->sendMessage(json_message.toJson().toStdString());
+    // std::cout << "\n Offerer 4";
+    socket->write(json_message.toJson().toStdString().c_str());
+    socket->waitForReadyRead();
+    // make_datachannel();
+    socket->waitForReadyRead();
+    // dc->send("hellloooooo");
+
 }
 
-void offerer::set_remote(QString json_message){
-    qDebug() << "\nXXXXXXXXXXXXXXXXXXXXXX";
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(json_message.toUtf8());
+void offerer::set_remote(QString message){
+    // QThread::sleep(5);
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(message.toUtf8());
     QJsonObject jsonObject = jsonDocument.object();
-    pc->setRemoteDescription(rtc::Description(jsonObject["set_remote"].toString().toStdString()));
-    QJsonArray candidate_array = jsonDocument.array();
+    pc->setRemoteDescription(rtc::Description(jsonObject["sdp"].toString().toStdString()));
+    QJsonArray candidate_array = jsonObject["candidates"].toArray();
     for (int i = 0; i < candidate_array.size(); ++i) {
         pc->addRemoteCandidate(rtc::Candidate(candidate_array.at(i).toString().toStdString()));
-        qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
-        std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
+        // qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
+        // std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
     }
-    if (role == "answerer"){
-        QJsonDocument json_message = prepare_sdp_and_candidate_message("Farbod");//must change
-        myclient->sendMessage(json_message.toJson().toStdString());
-    }
+    qDebug() << "set offerer done";
+    // make_datachannel();
+    // if (role == "answerer"){
+    //     QJsonDocument json_message = prepare_sdp_and_candidate_message();
+    //     myclient->sendMessage(json_message.toJson().toStdString());
+    // }
+
 }
 
 void offerer::make_datachannel(){
     dc = pc->createDataChannel("test"); // this is the offerer, so create a data channel
 
-    dc->onOpen([&]() { std::cout << "[DataChannel open: " << dc->label() << "]" << std::endl; });
+    dc->onOpen([&]() { std::cout << "[DataChannel open: " << dc->label() << "]" << std::endl;
+        startPhoneCall();
+
+    });
 
     dc->onClosed(
         [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
 
     dc->onMessage([](auto data) {
         if (std::holds_alternative<std::string>(data)) {
-            std::cout << "[Received: " << std::get<std::string>(data) << "]" << std::endl;
+            std::cout << "[Received: " << std::get<std::string>(data);
         }
     });
 }
@@ -118,12 +142,12 @@ void offerer::initialize_peer_connection(){
 
     pc->onLocalDescription([this](rtc::Description _description) {
         description = std::string(_description);
-        qDebug() << "hey";
+        // qDebug() << "hey";
     });
 
     pc->onLocalCandidate([this](rtc::Candidate _candidate) {
         local_candidates.push_back(std::string(_candidate));
-        qDebug() << "hoy";
+        // qDebug() << "hoy";
     });
 
 

@@ -3,6 +3,7 @@
 #include "audio_capture.h"
 #include "offerer.h"
 #include "signaling_server.h"
+#include "answerer.h"
 
 #include <QApplication>
 #include <QtNetwork>
@@ -16,17 +17,17 @@ void runClient2() {
     // TcpClient* c = new TcpClient("CONNECT Ali");
     // c->runClient2();
     // c->sendMessage("CONNECT Ali");
-    offerer of("Ahmad","answerer");
-    of.runAnswerer("Farbod");
+    answerer ans("Ahmad","answerer");
+    ans.runAnswerer();
 
-    std::cout << "#########################################\n";
-    of.send_message("Hello Farbod!");
+    // std::cout << "#########################################\n";
+    // ans.send_message("Hello Farbod!");
 
 }
 void runClient3() {
     // TcpClient* c = new TcpClient("CALL Farbod");
     // c->runClient2();
-    offerer of("Farbod","offerer");
+    offerer of("Farbod","Ahmad");
     of.runOfferer("Ahmad");
 }
 
@@ -58,7 +59,7 @@ int main(int argc, char *argv[])
     clientThread.start();
     QThread::msleep(5000);
     clientThread2.start();
-    QThread::msleep(1000);
+    // QThread::msleep(1000);
     // AudioCapture ac;
     // QObject::connect(&ac,&AudioCapture::bufferReady,process_buff);
     MainWindow w;
