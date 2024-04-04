@@ -17,6 +17,7 @@ public:
     void send_message(std::string message);
     void close_connection();
     explicit offerer(std::string name, std::string role, QObject *parent=nullptr);
+    void set_remote(QString message);
 signals:
 private:
     std::vector<std::string> local_candidates;
@@ -28,10 +29,12 @@ private:
     void initialize_peer_connection();
     QJsonDocument prepare_sdp_and_candidate_message();
     std::string role;
+    QTcpSocket* socket;
 
 
-private slots:
-    void set_remote(QString json_message);
+public slots:
+    void recieveResponse();
+    void connected();
 };
 
 

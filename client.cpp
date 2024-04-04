@@ -28,7 +28,7 @@ void TcpClient::receiveResponse(){
         if (jsonDocument.isObject()) {
             QJsonObject jsonObject = jsonDocument.object();
             if (jsonObject["type"] == "set_remote"){
-                emit set_remote(q_string_message);
+                emit sdpSet(q_string_message);
             }
         }
     }
