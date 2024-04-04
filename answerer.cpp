@@ -1,5 +1,5 @@
 #include "answerer.h"
-#include "client.h"
+#include "audio_player.h"
 #include "rtc/global.hpp"
 #include <rtc/configuration.hpp>
 #include <rtc/peerconnection.hpp>
@@ -10,10 +10,12 @@
 using std::shared_ptr;
 // #include <rtc/rtc.hpp>
 
-answerer::answerer(std::string name,std::string role, QObject *parent)
+answerer::answerer(std::string name,std::string role,AudioPlayer* _ap, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
+    ap = _ap;
     _name = name;
+    phone_connected = false;
 
     // myclient = new TcpClient(name,role);
     // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
@@ -57,14 +59,16 @@ void answerer::runAnswerer(){
     pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
         std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
         dc = _dc;
+        phone_connected =true;
 
         dc->onClosed(
             [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
 
-        dc->onMessage([](auto data) {
+        dc->onMessage([this](auto data) {
             if (std::holds_alternative<std::string>(data)) {
-                std::cout << "[Received message: " << std::get<std::string>(data) << "]"
-                          << std::endl;
+                ap->playData(std::get<std::string>(data));
+                // std::cout << "[Received message: " << std::get<std::string>(data) << "]"
+                          // << std::endl;
             }
         });
     });
@@ -74,6 +78,11 @@ void answerer::runAnswerer(){
     // QThread::sleep(1);
     socket->write(json_message.toJson().toStdString().c_str());
     socket->waitForReadyRead();
+    while( !phone_connected){
+        continue;
+    }
+
+
     //send message in slot function !
 
 }

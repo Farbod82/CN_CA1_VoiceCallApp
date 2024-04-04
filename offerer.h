@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <iostream>
+#include "audio_capture.h"
 #include "client.h"
 #include "rtc/rtc.hpp"
 #include <QJsonDocument>
@@ -16,11 +17,13 @@ public:
     void runAnswerer(std::string name);
     void send_message(std::string message);
     void close_connection();
-    explicit offerer(std::string name, std::string role, QObject *parent=nullptr);
+    explicit offerer(std::string name, std::string role, AudioCapture *ac, QObject *parent=nullptr);
     void set_remote(QString message);
     void startPhoneCall();
+    void test();
 signals:
 private:
+    AudioCapture *ac;
     std::vector<std::string> local_candidates;
     std::string description;
     TcpClient* myclient;
@@ -32,6 +35,7 @@ private:
     std::string offerer_name;
     std::string answerer_name;
     QTcpSocket* socket;
+    bool phone_connected;
 
 
 public slots:

@@ -7,6 +7,7 @@
 
 #include <QApplication>
 #include <QtNetwork>
+#include <QObject>
 
 #include "client.h"
 #include <rtc/rtc.hpp>
@@ -17,7 +18,9 @@ void runClient2() {
     // TcpClient* c = new TcpClient("CONNECT Ali");
     // c->runClient2();
     // c->sendMessage("CONNECT Ali");
-    answerer ans("Ahmad","answerer");
+    AudioPlayer* ap = new AudioPlayer();
+    ap->startPlaying();
+    answerer ans("Ahmad","answerer",ap);
     ans.runAnswerer();
 
     // std::cout << "#########################################\n";
@@ -25,10 +28,10 @@ void runClient2() {
 
 }
 void runClient3() {
+
     // TcpClient* c = new TcpClient("CALL Farbod");
     // c->runClient2();
-    offerer of("Farbod","Ahmad");
-    of.runOfferer("Ahmad");
+
 }
 
 
@@ -45,23 +48,27 @@ void process_buff(const QByteArray& data){
 
 int main(int argc, char *argv[])
 {
+    //offerer
     QApplication a(argc, argv);
     QThread serverThread;
     QThread clientThread;
-    QThread clientThread2;
+    // QThread clientThread2;
     // AudioRecorder ar;
     // ar.record();
     QObject::connect(&serverThread, &QThread::started, []() { runServer2(); });
     QObject::connect(&clientThread, &QThread::started, []() { runClient2(); });
-    QObject::connect(&clientThread2, &QThread::started, []() { runClient3(); });
+    // QObject::connect(&clientThread2, &QThread::started, []() { runClient3(); });
 
     serverThread.start();
     clientThread.start();
     QThread::msleep(5000);
-    clientThread2.start();
+    // clientThread2.start();
     // QThread::msleep(1000);
+    AudioCapture* ac = new AudioCapture();
+    // ac->startRecord();
+    offerer of("Farbod","Ahmad",ac);
     // AudioCapture ac;
-    // QObject::connect(&ac,&AudioCapture::bufferReady,process_buff);
+    of.runOfferer("Ahmad");
     MainWindow w;
     w.show();
     return a.exec();

@@ -24,23 +24,26 @@ void AudioCapture::audioSourceData(QIODevice * device, QAudioSource* src){
     QByteArray buffer(len, 0);
     qint64 l = device->read(buffer.data(), len);
     QByteArray buff = QByteArray::fromRawData(buffer,l);
-    _dc->send("hello");
+    emit bufferReady(buff);
 }
 
 
 
-AudioCapture::AudioCapture(std::shared_ptr<rtc::DataChannel> dc,QObject *parent)
+AudioCapture::AudioCapture(QObject *parent)
     : QObject{parent}
 {
+
+}
+
+void AudioCapture::startRecord(){
     QMediaDevices* devices = new QMediaDevices{this};
     QAudioFormat format;
     format.setSampleRate(8000);
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::Int16);
     // shared_ptr<rtc::DataChannel> _dc;
-    _dc = dc;
     QAudioSource* audioSource = new QAudioSource{devices->defaultAudioInput(),
-                                     format,nullptr};
+                                                 format,nullptr};
     audioSource->reset();
     auto io = audioSource->start();
     if(!io->open(QIODevice::ReadOnly))

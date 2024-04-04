@@ -1,5 +1,5 @@
 #include "audio_capture.h"
-#include "client.h"
+// #include "client.h"
 #include "offerer.h"
 #include "rtc/global.hpp"
 #include <rtc/configuration.hpp>
@@ -10,12 +10,14 @@
 
 // #include <rtc/rtc.hpp>
 
-offerer::offerer(std::string _offerer_name,std::string _answerer_name, QObject *parent)
+offerer::offerer(std::string _offerer_name,std::string _answerer_name,AudioCapture* _ac, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
     // myclient = new TcpClient(name,role);
     // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
     // myclient->runClient2();
+    ac = _ac;
+    phone_connected = false;
     offerer_name = _offerer_name;
     answerer_name = _answerer_name;
     connect(socket, &QTcpSocket::connected, this, &offerer::connected);
@@ -26,13 +28,18 @@ offerer::offerer(std::string _offerer_name,std::string _answerer_name, QObject *
 }
 
 void offerer::startPhoneCall(){
-    AudioCapture* ac = new AudioCapture(dc);
-
+    phone_connected = true;
+    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::sendToDataChannel);
 }
 
+void offerer::test(){
+
+}
 void offerer::sendToDataChannel(const QByteArray& data){
+    if (phone_connected){
     // dc->sendBuffer(data);
-    dc->send("hello");
+        dc->send(QString::fromUtf8(data).toStdString());
+    }
 }
 
 void offerer::connected(){
@@ -90,7 +97,13 @@ void offerer::runOfferer(std::string answerer_name){
     socket->write(json_message.toJson().toStdString().c_str());
     socket->waitForReadyRead();
     // make_datachannel();
-    socket->waitForReadyRead();
+    while( ! phone_connected){
+        continue;
+    }
+    ac->startRecord();
+    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::sendToDataChannel);
+
+    // socket->waitForReadyRead();
     // dc->send("hellloooooo");
 
 }

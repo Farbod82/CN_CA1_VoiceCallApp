@@ -4,6 +4,7 @@
 
 #include <QObject>
 #include <iostream>
+#include "audio_player.h"
 #include "client.h"
 #include "rtc/rtc.hpp"
 #include <QJsonDocument>
@@ -17,8 +18,8 @@ public:
     void runAnswerer();
     void send_message(std::string message);
     void close_connection();
-    explicit answerer(std::string name, std::string role, QObject *parent=nullptr);
     void set_remote(QString message);
+    explicit answerer(std::string name, std::string role, AudioPlayer *_ap, QObject *parent=nullptr);
 signals:
 private:
     std::vector<std::string> local_candidates;
@@ -32,6 +33,8 @@ private:
     std::string role;
     QTcpSocket* socket;
     std::string _name;
+    bool phone_connected;
+    AudioPlayer* ap;
 
 
 public slots:
