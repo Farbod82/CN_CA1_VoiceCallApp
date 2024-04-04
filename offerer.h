@@ -5,14 +5,17 @@
 #include <iostream>
 #include "client.h"
 #include "rtc/rtc.hpp"
+#include <QJsonDocument>
 
 class offerer : public QObject
 {
     Q_OBJECT
 public:
     explicit offerer(std::string name, QObject *parent = nullptr);
-
     void runOfferer(std::string answerer_name);
+    void runAnswerer(std::string name);
+    void send_message(std::string message);
+    void close_connection();
 signals:
 private:
     std::vector<std::string> local_candidates;
@@ -22,6 +25,8 @@ private:
     std::shared_ptr<rtc::DataChannel> dc;
     void make_datachannel();
     void initialize_peer_connection();
+    QJsonDocument prepare_sdp_and_candidate_message();
+    std::string role;
 
 
 private slots:

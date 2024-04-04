@@ -13,23 +13,41 @@ offerer::offerer(std::string name, QObject *parent)
     : QObject{parent}
 {
     myclient = new TcpClient("CONNECT "+name);
+    myclient->runClient2();
     connect(myclient, &TcpClient::set_remote, this, &offerer::set_remote);
-    std::cout << "aaaaaaaaaaaaaa" << std::endl;
 
 }
 
-void offerer::runOfferer(std::string answerer_name){
-    myclient->runClient2();
+void offerer::runAnswerer(std::string name){
+    role = "answerer";
+    std::cout << "\nAnswerer 1";
     rtc::InitLogger(rtc::LogLevel::Warning);
-
     initialize_peer_connection();
 
-    make_datachannel();
+    std::cout << "\nAnswerer 2";
+    pc->onDataChannel([&](std::shared_ptr<rtc::DataChannel> _dc) {
+        std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
+        dc = _dc;
 
+        dc->onClosed(
+            [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
+
+        dc->onMessage([](auto data) {
+            if (std::holds_alternative<std::string>(data)) {
+                std::cout << "[Received message: " << std::get<std::string>(data) << "]"
+                          << std::endl;
+            }
+        });
+    });
     QThread::sleep(1);
 
+    //send message in slot function !
+
+}
+
+QJsonDocument offerer::prepare_sdp_and_candidate_message(){
     QJsonObject sdp_candidate_object;
-    sdp_candidate_object["type"] = "set_remtote";
+    sdp_candidate_object["type"] = "set_remote";
     sdp_candidate_object["sdp"] = QString::fromStdString(description);
 
     QJsonArray candidates;
@@ -38,6 +56,23 @@ void offerer::runOfferer(std::string answerer_name){
     }
     sdp_candidate_object["candidates"] = candidates;
     QJsonDocument json_message(sdp_candidate_object);
+    return json_message;
+}
+
+void offerer::runOfferer(std::string answerer_name){
+    role = "offerer";
+    rtc::InitLogger(rtc::LogLevel::Warning);
+    std::cout << "\n Offere 1";
+    initialize_peer_connection();
+
+    std::cout << "\n Offere 2";
+    make_datachannel();
+
+    QThread::sleep(1);
+    std::cout << "\n Offere 3";
+    QJsonDocument json_message = prepare_sdp_and_candidate_message();
+
+    std::cout << "\n Offere 4";
     myclient->sendMessage(json_message.toJson().toStdString());
 }
 
@@ -51,8 +86,10 @@ void offerer::set_remote(QString json_message){
         qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
         std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
     }
-
-
+    if (role == "answerer"){
+        QJsonDocument json_message = prepare_sdp_and_candidate_message();
+        myclient->sendMessage(json_message.toJson().toStdString());
+    }
 }
 
 void offerer::make_datachannel(){
@@ -95,4 +132,20 @@ void offerer::initialize_peer_connection(){
     pc->onGatheringStateChange([](rtc::PeerConnection::GatheringState state) {
         std::cout << "[Gathering State: " << state << "]" << std::endl;
     });
+}
+
+void offerer::send_message(std::string message){
+    if (!dc || !dc->isOpen()) {
+        std::cout << "** Channel is not Open ** ";
+        return;
+    }
+    dc->send(message);
+}
+
+void offerer::close_connection(){
+    if (dc)
+        dc->close();
+
+    if (pc)
+        pc->close();
 }

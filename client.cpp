@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <iostream>
 
 TcpClient::TcpClient(std::string message) : QObject(), socket(new QTcpSocket()) {
     _message = message;
@@ -13,10 +14,12 @@ void TcpClient::connected() {
     qDebug() << "connected";
 }
 void TcpClient::receiveResponse(){
+    std::cout << "\nzzzzzzzzzzzzzzzzzzzzzz\n";
     QTcpSocket* socket = qobject_cast<QTcpSocket*>(sender());
     std::string message = socket->readAll().data();
     QString q_string_message = QString::fromStdString(message);
     qDebug() << "response from server: " << message;
+    std::cout << "response from server: " << message;
 
     QJsonDocument jsonDocument = QJsonDocument::fromJson(q_string_message.toUtf8());
     if (!jsonDocument.isNull()) {
