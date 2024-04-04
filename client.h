@@ -26,6 +26,8 @@ private slots:
 private:
     QTcpSocket* socket;
     std::string _message;
+signals:
+    void set_remote(QString json_message);
 };
 
 #endif // CLIENT_H

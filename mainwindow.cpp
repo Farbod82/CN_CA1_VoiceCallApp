@@ -18,8 +18,8 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     QString ip = ui->plainTextEdit->toPlainText();
-    offerer* offer = new offerer();
-    offer->runOfferer("mew", ip.toStdString());
+    offerer* offer = new offerer("mew");
+    offer->runOfferer(ip.toStdString());
 }
 
 

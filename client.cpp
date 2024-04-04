@@ -1,6 +1,8 @@
 #include "client.h"
 #include <QTcpSocket>
 #include <QObject>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 TcpClient::TcpClient(std::string message) : QObject(), socket(new QTcpSocket()) {
     _message = message;
@@ -13,7 +15,18 @@ void TcpClient::connected() {
 void TcpClient::receiveResponse(){
     QTcpSocket* socket = qobject_cast<QTcpSocket*>(sender());
     std::string message = socket->readAll().data();
+    QString q_string_message = QString::fromStdString(message);
     qDebug() << "response from server: " << message;
+
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(q_string_message.toUtf8());
+    if (!jsonDocument.isNull()) {
+        if (jsonDocument.isObject()) {
+            QJsonObject jsonObject = jsonDocument.object();
+            if (jsonObject["type"] == "set_remote"){
+                emit set_remote(q_string_message);
+            }
+        }
+    }
 }
 
 void TcpClient::runClient2() {
@@ -26,6 +39,3 @@ void TcpClient::runClient2() {
 void TcpClient::sendMessage(std::string message){
     socket->write(message.c_str());
 }
-
-
-

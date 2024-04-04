@@ -20,8 +20,8 @@ void runClient2() {
 void runClient3() {
     // TcpClient* c = new TcpClient("CALL Farbod");
     // c->runClient2();
-    offerer of;
-    of.runOfferer("Farbod","Ali");
+    offerer of("Farbod");
+    of.runOfferer("Ali");
 }
 
 void runServer2()
