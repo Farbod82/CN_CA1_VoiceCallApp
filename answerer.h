@@ -9,7 +9,7 @@ class answerer : public QObject
 public:
     explicit answerer(QObject *parent = nullptr);
 
-    void runAnswerer();
+    void runAnswerer(std::string name);
 signals:
 };
 

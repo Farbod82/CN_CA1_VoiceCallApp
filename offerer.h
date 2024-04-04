@@ -15,7 +15,7 @@ public:
     void runOfferer(std::string name, std::string answerer_name);
 signals:
 private:
-    std::string candidate;
+    std::vector<std::string> local_candidates;
     std::string description;
 };
 

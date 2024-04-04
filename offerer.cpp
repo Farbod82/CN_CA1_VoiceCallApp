@@ -3,6 +3,10 @@
 #include "rtc/global.hpp"
 #include <rtc/configuration.hpp>
 #include <rtc/peerconnection.hpp>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+
 // #include <rtc/rtc.hpp>
 
 offerer::offerer(QObject *parent)
@@ -14,7 +18,6 @@ offerer::offerer(QObject *parent)
 void offerer::runOfferer(std::string name,std::string answerer_name){
     TcpClient* myclient = new TcpClient("CONNECT "+name);
     myclient->runClient2();
-    // myclient->sendMessage("CONNECT "+name);
     rtc::InitLogger(rtc::LogLevel::Warning);
     rtc::Configuration config;
     config.iceServers.emplace_back("stun.l.google.com:19302");
@@ -27,12 +30,9 @@ void offerer::runOfferer(std::string name,std::string answerer_name){
     });
 
     pc->onLocalCandidate([this](rtc::Candidate _candidate) {
-        candidate = std::string(_candidate);
+        local_candidates.push_back(std::string(_candidate));
         qDebug() << "hoy";
     });
-
-
-
 
 
     pc->onStateChange([](rtc::PeerConnection::State state) {
@@ -57,5 +57,15 @@ void offerer::runOfferer(std::string name,std::string answerer_name){
     });
 
     QThread::sleep(1);
-    myclient->sendMessage("CALL," + answerer_name+"," + description + "," + candidate);
+
+    QJsonObject sdp_candidate_object;
+    sdp_candidate_object["sdp"] = QString::fromStdString(description);
+
+    QJsonArray candidates;
+    for (auto cand : local_candidates){
+        candidates.append(QString::fromStdString(cand));
+    }
+    sdp_candidate_object["candidates"] = candidates;
+    QJsonDocument json_message(sdp_candidate_object);
+    myclient->sendMessage(json_message.toJson().toStdString());
 }

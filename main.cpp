@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "audio_capture.h"
 #include "offerer.h"
+#include "signaling_server.h"
 
 #include <QApplication>
 #include <QtNetwork>

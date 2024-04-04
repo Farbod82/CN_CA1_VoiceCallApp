@@ -2,7 +2,6 @@
 #include <QTcpSocket>
 #include <QObject>
 
-
 TcpClient::TcpClient(std::string message) : QObject(), socket(new QTcpSocket()) {
     _message = message;
 }

@@ -1,10 +1,24 @@
 #include "answerer.h"
 #include "rtc/global.hpp"
-
+#include "client.h"
 #include <rtc/configuration.hpp>
 #include <rtc/peerconnection.hpp>
+#include <Qvector>
+#include <sstream>
 
 
+std::vector<std::string> split(std::string message, std::string sep){
+    std::stringstream test("this_is_a_test_string");
+    std::string segment;
+    std::vector<std::string> splited;
+
+    while(std::getline(test, segment, '_'))
+    {
+        splited.push_back(segment);
+    }
+
+    return splited;
+}
 
 answerer::answerer(QObject *parent)
     : QObject{parent}
@@ -13,12 +27,12 @@ answerer::answerer(QObject *parent)
 using std::shared_ptr;
 
 
-void answerer::runAnswerer(){
+void answerer::runAnswerer(std::string name){
     rtc::InitLogger(rtc::LogLevel::Warning);
 
     rtc::Configuration config;
-    // config.iceServers.emplace_back("stun.l.google.com:19302");
-
+    config.iceServers.emplace_back("stun.l.google.com:19302");
+    TcpClient *client = new TcpClient("ANSWERER " +name);
     auto pc = std::make_shared<rtc::PeerConnection>(config);
 
     pc->onLocalDescription([](rtc::Description description) {
@@ -38,6 +52,12 @@ void answerer::runAnswerer(){
     pc->onGatheringStateChange([](rtc::PeerConnection::GatheringState state) {
         std::cout << "[Gathering State: " << state << "]" << std::endl;
     });
+
+    // std::string message = client->receiveResponse();
+    // auto splited_message = split(message, ",");
+    // if (splited_message[0] == "CALL"){
+    //     // emit
+    // }
 
     shared_ptr<rtc::DataChannel> dc;
     pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
