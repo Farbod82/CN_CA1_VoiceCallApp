@@ -7,12 +7,14 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+using std::shared_ptr;
 // #include <rtc/rtc.hpp>
 
 answerer::answerer(std::string name,std::string role, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
     _name = name;
+
     // myclient = new TcpClient(name,role);
     // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
     // myclient->runClient2();
@@ -20,7 +22,6 @@ answerer::answerer(std::string name,std::string role, QObject *parent)
     connect(socket,&QTcpSocket::readyRead,this, &answerer::recieveResponse);
     socket->connectToHost(QHostAddress::LocalHost, 8080, QIODevice::ReadWrite);
     while (!socket->waitForConnected(30000));
-
 }
 
 void answerer::connected(){
@@ -51,9 +52,9 @@ void answerer::runAnswerer(){
     std::cout << "\nAnswerer 1";
     rtc::InitLogger(rtc::LogLevel::Warning);
     initialize_peer_connection();    
-    socket->waitForReadyRead();
     std::cout << "\nAnswerer 2";
-    pc->onDataChannel([&](std::shared_ptr<rtc::DataChannel> _dc) {
+    shared_ptr<rtc::DataChannel> dc;
+    pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
         std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
         dc = _dc;
 
@@ -67,14 +68,20 @@ void answerer::runAnswerer(){
             }
         });
     });
-    QThread::sleep(1);
+    // QThread::sleep(1);
+    socket->waitForReadyRead();
+    QJsonDocument json_message = prepare_sdp_and_candidate_message();
+    // QThread::sleep(1);
+    socket->write(json_message.toJson().toStdString().c_str());
+    socket->waitForReadyRead();
     //send message in slot function !
 
 }
 
 QJsonDocument answerer::prepare_sdp_and_candidate_message(){
     QJsonObject sdp_candidate_object;
-    sdp_candidate_object["name"] = "Ahmad";
+    sdp_candidate_object["reciever"] = "Farbod";
+    sdp_candidate_object["sender"] = "NoNeed";
     sdp_candidate_object["type"] = "set_remote";
     sdp_candidate_object["sdp"] = QString::fromStdString(description);
 
@@ -94,11 +101,11 @@ void answerer::set_remote(QString message){
     QJsonArray candidate_array = jsonObject["candidates"].toArray();
     for (int i = 0; i < candidate_array.size(); ++i) {
         pc->addRemoteCandidate(rtc::Candidate(candidate_array.at(i).toString().toStdString()));
-        qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
-        std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
+        // qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
+        // std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
     }
     // if (role == "answerer"){
-    //     QJsonDocument json_message = prepare_sdp_and_candidate_message();
+    qDebug() << "set answerer done";
     //     myclient->sendMessage(json_message.toJson().toStdString());
     // }
 }

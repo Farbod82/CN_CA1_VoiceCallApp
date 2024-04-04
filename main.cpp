@@ -27,7 +27,7 @@ void runClient2() {
 void runClient3() {
     // TcpClient* c = new TcpClient("CALL Farbod");
     // c->runClient2();
-    offerer of("Farbod","offerer");
+    offerer of("Farbod","Ahmad");
     of.runOfferer("Ahmad");
 }
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     clientThread.start();
     QThread::msleep(5000);
     clientThread2.start();
-    QThread::msleep(1000);
+    // QThread::msleep(1000);
     // AudioCapture ac;
     // QObject::connect(&ac,&AudioCapture::bufferReady,process_buff);
     MainWindow w;

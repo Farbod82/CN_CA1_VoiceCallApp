@@ -69,8 +69,18 @@ void TcpServer::handleRequests(std::string message,QTcpSocket* socket){
         QString q_string_message = QString::fromStdString(message);
         QJsonDocument jsonDocument = QJsonDocument::fromJson(q_string_message.toUtf8());
         QJsonObject jsonObject = jsonDocument.object();
-        QString name = jsonObject["name"].toString();
-        Client* reciever = findUserByName(name.toStdString());
+        QString reciever_name = jsonObject["reciever"].toString();
+        QString offerer_name = jsonObject["sender"].toString();
+        Client* reciever = findUserByName(reciever_name.toStdString());
+        if (offerer_name.compare("NoNeed") != 0){
+            Client* new_client = new Client;
+            new_client->name = offerer_name.toStdString();
+            new_client->socket = socket;
+            clients.push_back(new_client);
+        }
+        else{
+            qDebug() << "reached";
+        }
         reciever->socket->write(message.c_str());
     }
     return;

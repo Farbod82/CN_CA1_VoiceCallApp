@@ -18,6 +18,7 @@ public:
     void close_connection();
     explicit offerer(std::string name, std::string role, QObject *parent=nullptr);
     void set_remote(QString message);
+    void startPhoneCall();
 signals:
 private:
     std::vector<std::string> local_candidates;
@@ -28,11 +29,13 @@ private:
     void make_datachannel();
     void initialize_peer_connection();
     QJsonDocument prepare_sdp_and_candidate_message();
-    std::string role;
+    std::string offerer_name;
+    std::string answerer_name;
     QTcpSocket* socket;
 
 
 public slots:
+    void sendToDataChannel(const QByteArray &data);
     void recieveResponse();
     void connected();
 };

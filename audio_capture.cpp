@@ -5,8 +5,11 @@
 #include <QaudioFormat>
 #include <QDebug>
 
+#include <rtc/datachannel.hpp>
 
 
+
+using std::shared_ptr;
 
 
 
@@ -21,12 +24,12 @@ void AudioCapture::audioSourceData(QIODevice * device, QAudioSource* src){
     QByteArray buffer(len, 0);
     qint64 l = device->read(buffer.data(), len);
     QByteArray buff = QByteArray::fromRawData(buffer,l);
-    emit bufferReady(buff);
+    _dc->send("hello");
 }
 
 
 
-AudioCapture::AudioCapture(QObject *parent)
+AudioCapture::AudioCapture(std::shared_ptr<rtc::DataChannel> dc,QObject *parent)
     : QObject{parent}
 {
     QMediaDevices* devices = new QMediaDevices{this};
@@ -34,7 +37,8 @@ AudioCapture::AudioCapture(QObject *parent)
     format.setSampleRate(8000);
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::Int16);
-
+    // shared_ptr<rtc::DataChannel> _dc;
+    _dc = dc;
     QAudioSource* audioSource = new QAudioSource{devices->defaultAudioInput(),
                                      format,nullptr};
     audioSource->reset();
