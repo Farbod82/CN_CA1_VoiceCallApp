@@ -11,7 +11,7 @@ class offerer : public QObject
 {
     Q_OBJECT
 public:
-    explicit offerer(std::string _offerer_name, std::string name, QObject *parent=nullptr);
+    explicit offerer(std::string _offerer_name, std::string name, QString server_ip, QObject *parent=nullptr);
     void runOfferer();
     void send_message(std::string message);
     void set_remote(QString message);

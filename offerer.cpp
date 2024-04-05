@@ -10,14 +10,14 @@
 
 // #include <rtc/rtc.hpp>
 
-offerer::offerer(std::string _offerer_name,std::string _answerer_name, QObject *parent)
+offerer::offerer(std::string _offerer_name, std::string _answerer_name, QString server_ip, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
     offerer_name = _offerer_name;
     answerer_name = _answerer_name;
     connect(socket, &QTcpSocket::connected, this, &offerer::connected);
     connect(socket,&QTcpSocket::readyRead,this, &offerer::recieveResponse);
-    socket->connectToHost(QHostAddress::LocalHost, 8080, QIODevice::ReadWrite);
+    socket->connectToHost(server_ip, 8080, QIODevice::ReadWrite);
     while (!socket->waitForConnected(30000));
 
 }

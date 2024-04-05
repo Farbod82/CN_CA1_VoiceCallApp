@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "offerer.h"
 #include "answerer.h"
+#include "signaling_server.h"
 #include <QtNetwork>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -15,20 +16,6 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
-
-void MainWindow::on_pushButton_clicked()
-{
-    QString name = ui->plainTextEdit_friend_name->toPlainText();
-    if (ui->radioButton_answerer->isChecked()){
-        answerer ans(ui->plainTextEdit_name->toPlainText().toStdString());
-        ans.runAnswerer();
-    }
-    else {
-        offerer of(ui->plainTextEdit_name->toPlainText().toStdString(), ui->plainTextEdit_friend_name->toPlainText().toStdString());
-        of.runOfferer();
-    }
-}
-
 
 QString getIpAddress()
 {
@@ -61,6 +48,46 @@ QString getIpAddress()
     }
 
     return ipAddress;
+}
+
+
+void runAnswerer(std::string name, QString ip) {
+    answerer ans(name, ip);
+    ans.runAnswerer();
+}
+void runOfferer(std::string offerer_name, std::string answerer_name, QString ip) {
+    offerer of(offerer_name, answerer_name, ip);
+    of.runOfferer();
+}
+
+void runServer()
+{
+    TcpServer *s = new TcpServer();
+    s->runServer2();
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    std::string name = ui->plainTextEdit_name->toPlainText().toStdString();
+    QString server_ip = getIpAddress();
+    if (ui->radioButton_answerer->isChecked()){
+        qDebug() << "\nAnswerer ####";
+        serverThread = new QThread();
+        answererThread = new QThread();
+        QObject::connect(serverThread, &QThread::started, []() { runServer(); });
+        QObject::connect(answererThread, &QThread::started, [name, server_ip]() { runAnswerer(name, server_ip); });
+        serverThread->start();
+        qDebug() << "\nServerRuned ####";
+        answererThread->start();
+    }
+    else {
+        qDebug() << "\nCaller ####";
+        std::string friend_name = ui->plainTextEdit_friend_name->toPlainText().toStdString();
+        // offererThread = new QThread();
+        // QObject::connect(offererThread, &QThread::started, [name, server_ip, friend_name]() { runOfferer(name, friend_name, server_ip); });
+        // offererThread->start();
+        runOfferer(name, friend_name, server_ip);
+    }
 }
 
 void MainWindow::on_radioButton_answerer_toggled(bool checked)

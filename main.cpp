@@ -13,30 +13,30 @@
 
 
 
-void runClient2() {
-    // TcpClient* c = new TcpClient("CONNECT Ali");
-    // c->runClient2();
-    // c->sendMessage("CONNECT Ali");
-    answerer ans("Ahmad");
-    ans.runAnswerer();
+// void runClient2() {
+//     // TcpClient* c = new TcpClient("CONNECT Ali");
+//     // c->runClient2();
+//     // c->sendMessage("CONNECT Ali");
+//     answerer ans("Ahmad");
+//     ans.runAnswerer();
 
-    // std::cout << "#########################################\n";
-    // ans.send_message("Hello Farbod!");
+//     // std::cout << "#########################################\n";
+//     // ans.send_message("Hello Farbod!");
 
-}
-void runClient3() {
-    // TcpClient* c = new TcpClient("CALL Farbod");
-    // c->runClient2();
-    offerer of("Farbod","Ahmad");
-    of.runOfferer();
-}
+// }
+// void runClient3() {
+//     // TcpClient* c = new TcpClient("CALL Farbod");
+//     // c->runClient2();
+//     offerer of("Farbod","Ahmad");
+//     of.runOfferer();
+// }
 
 
-void runServer2()
-{
-    TcpServer *s = new TcpServer();
-    s->runServer2();
-}
+// void runServer2()
+// {
+//     TcpServer *s = new TcpServer();
+//     s->runServer2();
+// }
 void process_buff(const QByteArray& data){
     for(int i =0; i <data.size(); i++){
         qDebug() <<data.at(i);
@@ -46,19 +46,19 @@ void process_buff(const QByteArray& data){
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    QThread serverThread;
-    QThread clientThread;
-    QThread clientThread2;
+    // QThread serverThread;
+    // QThread clientThread;
+    // QThread clientThread2;
     // AudioRecorder ar;
     // ar.record();
-    QObject::connect(&serverThread, &QThread::started, []() { runServer2(); });
-    QObject::connect(&clientThread, &QThread::started, []() { runClient2(); });
-    QObject::connect(&clientThread2, &QThread::started, []() { runClient3(); });
+    // QObject::connect(&serverThread, &QThread::started, []() { runServer2(); });
+    // QObject::connect(&clientThread, &QThread::started, []() { runClient2(); });
+    // QObject::connect(&clientThread2, &QThread::started, []() { runClient3(); });
 
-    serverThread.start();
-    clientThread.start();
-    QThread::msleep(5000);
-    clientThread2.start();
+    // serverThread.start();
+    // clientThread.start();
+    // QThread::msleep(5000);
+    // clientThread2.start();
     // QThread::msleep(1000);
     // AudioCapture ac;
     // QObject::connect(&ac,&AudioCapture::bufferReady,process_buff);

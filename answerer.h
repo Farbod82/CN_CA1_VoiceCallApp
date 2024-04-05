@@ -12,7 +12,7 @@ class answerer : public QObject
 {
     Q_OBJECT
 public:
-    explicit answerer(std::string name, QObject *parent=nullptr);
+    explicit answerer(std::string name, QString server_ip, QObject *parent=nullptr);
     void runAnswerer();
     void set_remote(QString message);
     void send_message(std::string message);
@@ -28,6 +28,7 @@ private:
     std::shared_ptr<rtc::DataChannel> dc;
     QTcpSocket* socket;
     std::string _name;
+    QString offerer_name;
 
 
 public slots:

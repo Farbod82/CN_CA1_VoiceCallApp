@@ -9,13 +9,13 @@
 
 using std::shared_ptr;
 
-answerer::answerer(std::string name, QObject *parent)
+answerer::answerer(std::string name, QString server_ip, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
     _name = name;
     connect(socket, &QTcpSocket::connected, this, &answerer::connected);
     connect(socket,&QTcpSocket::readyRead,this, &answerer::recieveResponse);
-    socket->connectToHost(QHostAddress::LocalHost, 8080, QIODevice::ReadWrite);
+    socket->connectToHost(server_ip, 8080, QIODevice::ReadWrite);
     while (!socket->waitForConnected(30000));
 }
 
@@ -74,7 +74,7 @@ void answerer::runAnswerer(){
 
 QJsonDocument answerer::prepare_sdp_and_candidate_message(){
     QJsonObject sdp_candidate_object;
-    sdp_candidate_object["reciever"] = "Farbod";
+    sdp_candidate_object["reciever"] = offerer_name;
     sdp_candidate_object["sender"] = "NoNeed";
     sdp_candidate_object["type"] = "set_remote";
     sdp_candidate_object["sdp"] = QString::fromStdString(description);
@@ -98,6 +98,7 @@ void answerer::set_remote(QString message){
         // qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
         // std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
     }
+    offerer_name = jsonObject["sender"].toString();
     qDebug() << "set answerer done";
 }
 

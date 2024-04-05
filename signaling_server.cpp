@@ -101,5 +101,5 @@ void TcpServer::newConnection() {
 
 void TcpServer::runServer2() {
     connect(server, &QTcpServer::newConnection,this, &TcpServer::newConnection);
-    server->listen(QHostAddress::LocalHost, 8080);
+    server->listen(QHostAddress::Any, 8080);
 }
