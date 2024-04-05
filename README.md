@@ -1,7 +1,9 @@
 
 
 <div dir='rtl'>
-        <h1>Farri voice Message Application</h1>
+        <h1>P2P Voice Call Application</h1>
+        <h2> Farbod Azimmohseni 810100187</h2>
+        <h2> Seyyed Ahmad Rokni Hoseini 810100154</h2>
         <p> using WebRTC and QT Creator </p>
         <p>این برنامه توسط دو فریم وورک QT Creator و WebRTC نوشته شده است و به وسیله آن می توان 
         .تماس صوتی بین دو دستگاه ایجاد کرد
@@ -114,11 +116,44 @@
         <br>
         مانند بالا ابتدا تابع initialize اجرا می شود. در مرحله بعدی چون offerer است باید دیتاچنل را ایجاد کند (در ادامه کد این تابع هم آمده است).
         <br>
-        سپس پیامی که شامل SDP , ICE است را آماده و برای answerer ارسال می کند.
-        پس از آن منتظر می ماند تا answerer نیز همین موارد را برایش ارسال کند.
-        پس از آن نیز مانند فایل قبلی است.
-        <img src='README_files/make_datachannel.png'>
+         <h2> Data Channel</h2>
+        <p>
+        برای ایجاد یک datachannel در webrtc لازم است که در  ابتدا sdp و candidates که اطلاعات لازم برای ایجاد یک ارتباط p2p به peer مقابل فرستاده شود. 
+        برای این application  در ابتدا offerer یا تماس گیرنده یک  datachannel به صورت زیر ایجاد میکند:
+        <img src='README_files/create_dc.png' >
+        وقتی datachannel ساخته می شود پیام sdp توسط سرور به answerer فرستاده می شود.
+        هنگامی که ارتباط peer ها برقرار شد، کد سمت answerer نیز این datachannel را پیدا می کند و به آن وصل می شود:
+        <img src='README_files/answerer_dc.png' >
+        در نهایت وقتی که ارتباط از طریق datachannel برقرار شد خروجی زیر چاپ می شود.
+        <img src='README_files/dc_console.png' >
+        </p>
+        حال که ارتباط برقرار شد می توان با کد زیر پیام صوتی را از میکروفون گرفته و به طرف دیگر منتقل کرد.
+        <img src='README_files/dc_send.png' >
+        <p>
+        در نهایت وقتی پیامی به سمت دیگر فرستاده می شود عبارت dc->onMessage
+        صدا زده میشود و پیام به این شکل در هر طرف قابل دریافت می باشد.
+        </p>
+        <p>
+        پیام sdp که منتقل می شود به فرمت json و به صورت زیر است که شامل candidates و sdp و نام فرستنده و گیرنده می باشد.
+        <img src='README_files/1_console.png' >
+        </p>
+        <h2> Audio Input/Output</h2>
+        <p>
+        در این پروژه از دو کتابخانه QAudioSource و QAudioSink برای دریافت و پخش صدا استفاده شد داده ها به صورت زیر در یک QByteArray ذخیره شده و وقتی که بافر پر شد یک سیگنال اعلام میکند که بافر قابل خواندن است. دریافت صداو تبدیل آن به بافر بر عهده کد زیر است:
+        <img src='README_files/audio_capture.png' >
+        علاوه بر این پس از دریافت یک vector از datachannel که همان صدای فرستاده شده است با استفاده از کد زیر می توان آن را پخش کرد:
+        <img src='README_files/audio_player.png' >
+        <h2> Application</h2>
+        در نهایت خروجی application به صورت زیر می باشد:
+        <br> offerer:</br>
+        <img src='README_files/offerer_app.jpg' >
+        <br> answerer:</br>
+        <img src='README_files/answerer_app.jpg' >
+
         
+
+
+                
 
 
 
