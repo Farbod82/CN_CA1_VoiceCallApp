@@ -13,7 +13,7 @@ class answerer : public QObject
     Q_OBJECT
 public:
     explicit answerer(std::string name, QString server_ip, QObject *parent=nullptr);
-    void runAnswerer();
+    void run_answerer();
     void set_remote(QString message);
     void send_message(std::string message);
     void close_connection();
@@ -32,7 +32,7 @@ private:
 
 
 public slots:
-    void recieveResponse();
+    void recieve_response();
     void connected();
 };
 

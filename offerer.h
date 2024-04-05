@@ -12,10 +12,10 @@ class offerer : public QObject
     Q_OBJECT
 public:
     explicit offerer(std::string _offerer_name, std::string name, QString server_ip, QObject *parent=nullptr);
-    void runOfferer();
+    void run_offerer();
     void send_message(std::string message);
     void set_remote(QString message);
-    void startPhoneCall();
+    void start_phone_call();
     void close_connection();
 signals:
 
@@ -33,8 +33,8 @@ private:
 
 
 public slots:
-    void sendToDataChannel(const QByteArray &data);
-    void recieveResponse();
+    void send_to_datachannel(const QByteArray &data);
+    void recieve_response();
     void connected();
 };
 

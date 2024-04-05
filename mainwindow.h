@@ -25,8 +25,8 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QThread* serverThread = nullptr;
-    QThread* answererThread = nullptr;
-    QThread* offererThread = nullptr;
+    QThread* server_thread = nullptr;
+    QThread* answerer_thread = nullptr;
+    // QThread* offerer_thread = nullptr;
 };
 #endif // MAINWINDOW_H

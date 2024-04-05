@@ -1,28 +1,3 @@
-// #ifndef LISTNER_H
-// #define LISTNER_H
-
-
-// #include <QObject>
-// #include <QTcpServer>
-
-
-// class Listner : public QObject {
-//     Q_OBJECT
-
-// public:
-//     Listner(qint16 port = 8080);
-
-// private slots:
-//     void handleNewConnection();
-//     void handleClientData();
-//     void handleClientDisconnect();
-
-// private:
-//     QTcpServer* server;
-// };
-
-// #endif // LISTNER_H
-
 #ifndef LISTNER_H
 #define LISTNER_H
 
@@ -45,19 +20,20 @@ class TcpServer : public QObject {
 public:
     TcpServer();
     // void connectServer();
-    void newConnection();
-    void runServer2();
-    void handleRequests(std::string message, QTcpSocket *socket);
-    Client* findUserByName(std::string name);
-    void sendResponse(std::string response, QTcpSocket *socket);
-    std::vector<std::string> extractCommandInfo(std::string data, std::string message);
+    void new_connection();
+    void run_server2();
+    void handle_requests(std::string message, QTcpSocket *socket);
+    Client* find_user_by_name(std::string name);
+    void send_response(std::string response, QTcpSocket *socket);
+    std::vector<std::string> extract_command_info(std::string data, std::string message);
 private slots:
-    void receiveMessage();
+    void receive_message();
     // void connected();
 private:
     QTcpServer* server;
-    QTcpSocket* incomingSocket;
     std::vector<Client*> clients;
 };
 
 #endif
+
+

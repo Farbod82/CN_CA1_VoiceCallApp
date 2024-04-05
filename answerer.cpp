@@ -14,7 +14,7 @@ answerer::answerer(std::string name, QString server_ip, QObject *parent)
 {
     _name = name;
     connect(socket, &QTcpSocket::connected, this, &answerer::connected);
-    connect(socket,&QTcpSocket::readyRead,this, &answerer::recieveResponse);
+    connect(socket,&QTcpSocket::readyRead,this, &answerer::recieve_response);
     socket->connectToHost(server_ip, 8080, QIODevice::ReadWrite);
     while (!socket->waitForConnected(30000));
 }
@@ -24,7 +24,7 @@ void answerer::connected(){
     socket->write(("CONNECT " + _name).c_str());
 }
 
-void answerer::recieveResponse(){
+void answerer::recieve_response(){
     qDebug() << "Im fking here";
     QTcpSocket* _socket = qobject_cast<QTcpSocket*>(sender());
     std::string message = _socket->readAll().data();
@@ -42,7 +42,7 @@ void answerer::recieveResponse(){
     }
 }
 
-void answerer::runAnswerer(){
+void answerer::run_answerer(){
     std::cout << "\nAnswerer 1";
     rtc::InitLogger(rtc::LogLevel::Warning);
     initialize_peer_connection();    

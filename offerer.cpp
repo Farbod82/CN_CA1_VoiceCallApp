@@ -16,18 +16,18 @@ offerer::offerer(std::string _offerer_name, std::string _answerer_name, QString 
     offerer_name = _offerer_name;
     answerer_name = _answerer_name;
     connect(socket, &QTcpSocket::connected, this, &offerer::connected);
-    connect(socket,&QTcpSocket::readyRead,this, &offerer::recieveResponse);
+    connect(socket,&QTcpSocket::readyRead,this, &offerer::recieve_response);
     socket->connectToHost(server_ip, 8080, QIODevice::ReadWrite);
     while (!socket->waitForConnected(30000));
 
 }
 
-void offerer::startPhoneCall(){
+void offerer::start_phone_call(){
     AudioCapture* ac = new AudioCapture(dc);
 
 }
 
-void offerer::sendToDataChannel(const QByteArray& data){
+void offerer::send_to_datachannel(const QByteArray& data){
     // dc->sendBuffer(data);
     dc->send("hello");
 }
@@ -36,7 +36,7 @@ void offerer::connected(){
     qDebug() << "connected";
 }
 
-void offerer::recieveResponse(){
+void offerer::recieve_response(){
     qDebug() << "Im fking here";
     QTcpSocket* _socket = qobject_cast<QTcpSocket*>(sender());
     std::string message = _socket->readAll().data();
@@ -71,7 +71,7 @@ QJsonDocument offerer::prepare_sdp_and_candidate_message(){
     return json_message;
 }
 
-void offerer::runOfferer(){
+void offerer::run_offerer(){
     rtc::InitLogger(rtc::LogLevel::Warning);
     // std::cout << "\n Offere 1";
     initialize_peer_connection();
@@ -111,7 +111,7 @@ void offerer::make_datachannel(){
     dc = pc->createDataChannel("test"); // this is the offerer, so create a data channel
 
     dc->onOpen([&]() { std::cout << "[DataChannel open: " << dc->label() << "]" << std::endl;
-        startPhoneCall();
+        start_phone_call();
 
     });
 
