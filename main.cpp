@@ -7,18 +7,22 @@
 
 #include <QApplication>
 #include <QtNetwork>
+#include <QObject>
 
 #include "client.h"
 #include <rtc/rtc.hpp>
 
 
 
-// void runClient2() {
-//     // TcpClient* c = new TcpClient("CONNECT Ali");
-//     // c->runClient2();
-//     // c->sendMessage("CONNECT Ali");
-//     answerer ans("Ahmad", "192.168.1.106");
-//     ans.run_answerer();
+void runClient2() {
+    // TcpClient* c = new TcpClient("CONNECT Ali");
+    // c->runClient2();
+    // c->sendMessage("CONNECT Ali");
+    AudioPlayer* ap = new AudioPlayer();
+    AudioCapture* ac = new AudioCapture();
+    ap->startPlaying();
+    answerer ans("Ahmad","answerer",ap,ac);
+    ans.runAnswerer();
 
 //     // std::cout << "#########################################\n";
 //     // ans.send_message("Hello Farbod!");
@@ -45,6 +49,7 @@ void process_buff(const QByteArray& data){
 
 int main(int argc, char *argv[])
 {
+    //offerer
     QApplication a(argc, argv);
     // QThread serverThread;
     // QThread clientThread;
@@ -60,8 +65,13 @@ int main(int argc, char *argv[])
     // QThread::msleep(5000);
     // clientThread2.start();
     // QThread::msleep(1000);
+    AudioCapture* ac = new AudioCapture();
+    AudioPlayer* ap = new AudioPlayer();
+    ap->startPlaying();
+    // ac->startRecord();
+    offerer of("Farbod","Ahmad",ac,ap);
     // AudioCapture ac;
-    // QObject::connect(&ac,&AudioCapture::bufferReady,process_buff);
+    of.runOfferer("Ahmad");
     MainWindow w;
     w.show();
     return a.exec();

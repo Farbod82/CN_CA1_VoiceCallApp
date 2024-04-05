@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <iostream>
+#include "audio_capture.h"
+#include "audio_player.h"
 #include "client.h"
 #include "rtc/rtc.hpp"
 #include <QJsonDocument>
@@ -14,9 +16,8 @@ public:
     explicit offerer(std::string _offerer_name, std::string name, QString server_ip, QObject *parent=nullptr);
     void run_offerer();
     void send_message(std::string message);
-    void set_remote(QString message);
-    void start_phone_call();
-    void close_connection();
+    void startPhoneCall();
+    void test();
 signals:
 
 private:
@@ -29,12 +30,17 @@ private:
     std::shared_ptr<rtc::DataChannel> dc;
     std::string answerer_name;
     QTcpSocket* socket;
+    AudioCapture *ac;
+    AudioPlayer *ap;
+    std::vector<std::byte> audio_message;
     std::string offerer_name;
+    bool audio_connected;
+    bool phone_connected;
 
 
 public slots:
-    void send_to_datachannel(const QByteArray &data);
-    void recieve_response();
+    void sendToDataChannel(const QByteArray& data);
+    void recieveResponse();
     void connected();
 };
 

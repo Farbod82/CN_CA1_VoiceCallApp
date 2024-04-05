@@ -1,5 +1,5 @@
 #include "answerer.h"
-#include "client.h"
+#include "audio_player.h"
 #include "rtc/global.hpp"
 #include <rtc/configuration.hpp>
 #include <rtc/peerconnection.hpp>
@@ -9,10 +9,14 @@
 
 using std::shared_ptr;
 
-answerer::answerer(std::string name, QString server_ip, QObject *parent)
+answerer::answerer(std::string name, QString server_ip, AudioPlayer* _ap,AudioCapture* _ac, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
+    ap = _ap;
+    ac = _ac;
     _name = name;
+    phone_connected = false;
+    mic_connected = false;
     connect(socket, &QTcpSocket::connected, this, &answerer::connected);
     connect(socket,&QTcpSocket::readyRead,this, &answerer::recieve_response);
     socket->connectToHost(server_ip, 8080, QIODevice::ReadWrite);
@@ -42,23 +46,48 @@ void answerer::recieve_response(){
     }
 }
 
+void answerer::sendToDataChannel(const QByteArray& data){
+    if (phone_connected){
+        // dc->sendBuffer(data);
+        // std::string d = QString::fromUtf8(data).toStdString();
+        // dc->send();
+        // const char* charBuffer = data.constData();
+        // dc->send(data.constData());
+        // std::vector<std::byte> d(data.begin(), data.end());
+        // qDebug() << "im sending as answerer";
+        std::vector<char> d(data.begin(), data.end());
+        std::vector<std::byte> bytes;
+        for (char &c : d) {
+            bytes.push_back(static_cast<std::byte>(c));
+        }
+
+        dc->sendBuffer(bytes);
+
+    }
+}
 void answerer::run_answerer(){
     std::cout << "\nAnswerer 1";
     rtc::InitLogger(rtc::LogLevel::Warning);
     initialize_peer_connection();    
     std::cout << "\nAnswerer 2";
+
     pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
         std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
         dc = _dc;
 
+
         dc->onClosed(
             [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
 
-        dc->onMessage([](auto data) {
-            if (std::holds_alternative<std::string>(data)) {
-                std::cout << "[Received message: " << std::get<std::string>(data) << "]"
-                          << std::endl;
+        dc->onMessage([this](auto data) {
+            // qDebug() << "got you";
+            if (std::holds_alternative<std::vector<std::byte>>(data)) {
+                // auto d = std::get<std::vector<std::byte>>(data);
+                // QByteArray byteArray(reinterpret_cast<const char*>(d.data()), d.size());
+                audio_message = std::get<std::vector<std::byte>>(data);
+                phone_connected =true;
             }
+            // ap->playData(byteArray.constData());
         });
     });
     // QThread::sleep(1);
@@ -66,7 +95,24 @@ void answerer::run_answerer(){
     QJsonDocument json_message = prepare_sdp_and_candidate_message();
     // QThread::sleep(1);
     socket->write(json_message.toJson().toStdString().c_str());
-    socket->waitForReadyRead();
+    socket->waitForBytesWritten();
+    // socket->waitForReadyRead();
+    mic_connected = true;
+
+    ac->startRecord();
+    while(1){
+        connect(ac,&AudioCapture::bufferReady,this,&answerer::sendToDataChannel);
+        while( !phone_connected){
+            continue;
+        }
+        ap->playData(audio_message);
+        QByteArray mic_audio = ac->readAny();
+        sendToDataChannel(mic_audio);
+        phone_connected = false;
+    }
+
+
+
     //send message in slot function !
 
 }

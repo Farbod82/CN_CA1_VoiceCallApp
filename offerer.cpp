@@ -1,5 +1,5 @@
 #include "audio_capture.h"
-#include "client.h"
+// #include "client.h"
 #include "offerer.h"
 #include "rtc/global.hpp"
 #include <rtc/configuration.hpp>
@@ -10,9 +10,14 @@
 
 // #include <rtc/rtc.hpp>
 
-offerer::offerer(std::string _offerer_name, std::string _answerer_name, QString server_ip, QObject *parent)
+offerer::offerer(std::string _offerer_name, std::string _answerer_name, QString server_ip, AudioPlayer* _ap, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
+    ap = _ap;
+    ac = _ac;
+    ac->startRecord();
+    audio_connected = false;
+    phone_connected = false;
     offerer_name = _offerer_name;
     answerer_name = _answerer_name;
     connect(socket, &QTcpSocket::connected, this, &offerer::connected);
@@ -22,14 +27,34 @@ offerer::offerer(std::string _offerer_name, std::string _answerer_name, QString 
 
 }
 
-void offerer::start_phone_call(){
-    AudioCapture* ac = new AudioCapture(dc);
-
+void offerer::startPhoneCall(){
+    phone_connected = true;
+    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::sendToDataChannel);
 }
 
+
+void offerer::test(){
+
+}
 void offerer::send_to_datachannel(const QByteArray& data){
+    // qDebug() << "im sending as offerer";
+
+    if (phone_connected){
     // dc->sendBuffer(data);
-    dc->send("hello");
+        // std::string d = QString::fromUtf8(data).toStdString();
+        // dc->send();
+        // const char* charBuffer = data.constData();
+        // dc->send(data.constData());
+        // std::vector<std::byte> d(data.begin(), data.end());
+        std::vector<char> d(data.begin(), data.end());
+        std::vector<std::byte> bytes;
+        for (char &c : d) {
+            bytes.push_back(static_cast<std::byte>(c));
+        }
+
+        dc->sendBuffer(bytes);
+
+    }
 }
 
 void offerer::connected(){
@@ -87,7 +112,25 @@ void offerer::run_offerer(){
     socket->write(json_message.toJson().toStdString().c_str());
     socket->waitForReadyRead();
     // make_datachannel();
-    socket->waitForReadyRead();
+    // while( ! phone_connected){
+    //     continue;
+    // }
+
+    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::sendToDataChannel);
+    while(1){
+
+        while(! phone_connected){
+            continue;
+        }
+        QByteArray mic_data = ac->readAny();
+        sendToDataChannel(mic_data);
+        while(! audio_connected){
+            continue;
+        }
+        ap->playData(audio_message);
+
+    }
+    // socket->waitForReadyRead();
     // dc->send("hellloooooo");
 
 }
@@ -118,9 +161,12 @@ void offerer::make_datachannel(){
     dc->onClosed(
         [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
 
-    dc->onMessage([](auto data) {
-        if (std::holds_alternative<std::string>(data)) {
-            std::cout << "[Received: " << std::get<std::string>(data);
+    dc->onMessage([&](auto data) {
+        if (std::holds_alternative<std::vector<std::byte>>(data)) {
+            // auto d = std::get<std::vector<std::byte>>(data);
+            // QByteArray byteArray(reinterpret_cast<const char*>(d.data()), d.size());
+            audio_message = std::get<std::vector<std::byte>>(data);
+            audio_connected = true;
         }
     });
 }
