@@ -66,10 +66,10 @@ void answerer::send_to_datachannel(const QByteArray& data){
     }
 }
 void answerer::run_answerer(){
-    std::cout << "\nAnswerer 1";
+    // std::cout << "\nAnswerer 1";
     rtc::InitLogger(rtc::LogLevel::Warning);
     initialize_peer_connection();    
-    std::cout << "\nAnswerer 2";
+    // std::cout << "\nAnswerer 2";
 
     pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
         std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
