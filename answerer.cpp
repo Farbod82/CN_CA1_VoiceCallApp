@@ -46,7 +46,7 @@ void answerer::recieve_response(){
     }
 }
 
-void answerer::sendToDataChannel(const QByteArray& data){
+void answerer::send_to_datachannel(const QByteArray& data){
     if (phone_connected){
         // dc->sendBuffer(data);
         // std::string d = QString::fromUtf8(data).toStdString();
@@ -101,13 +101,13 @@ void answerer::run_answerer(){
 
     ac->startRecord();
     while(1){
-        connect(ac,&AudioCapture::bufferReady,this,&answerer::sendToDataChannel);
+        connect(ac,&AudioCapture::bufferReady,this,&answerer::send_to_datachannel);
         while( !phone_connected){
             continue;
         }
         ap->playData(audio_message);
         QByteArray mic_audio = ac->readAny();
-        sendToDataChannel(mic_audio);
+        send_to_datachannel(mic_audio);
         phone_connected = false;
     }
 
@@ -140,8 +140,6 @@ void answerer::set_remote(QString message){
     QJsonArray candidate_array = jsonObject["candidates"].toArray();
     for (int i = 0; i < candidate_array.size(); ++i) {
         pc->addRemoteCandidate(rtc::Candidate(candidate_array.at(i).toString().toStdString()));
-        // qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
-        // std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
     }
     offerer_name = jsonObject["sender"].toString();
     qDebug() << "set answerer done";

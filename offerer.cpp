@@ -10,7 +10,7 @@
 
 // #include <rtc/rtc.hpp>
 
-offerer::offerer(std::string _offerer_name, std::string _answerer_name, QString server_ip, AudioPlayer* _ap, QObject *parent)
+offerer::offerer(std::string _offerer_name, std::string _answerer_name, QString server_ip, AudioPlayer* _ap, AudioCapture* _ac, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
     ap = _ap;
@@ -27,9 +27,9 @@ offerer::offerer(std::string _offerer_name, std::string _answerer_name, QString 
 
 }
 
-void offerer::startPhoneCall(){
+void offerer::start_phone_call(){
     phone_connected = true;
-    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::sendToDataChannel);
+    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::send_to_datachannel);
 }
 
 
@@ -116,14 +116,14 @@ void offerer::run_offerer(){
     //     continue;
     // }
 
-    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::sendToDataChannel);
+    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::send_to_datachannel);
     while(1){
 
         while(! phone_connected){
             continue;
         }
         QByteArray mic_data = ac->readAny();
-        sendToDataChannel(mic_data);
+        send_to_datachannel(mic_data);
         while(! audio_connected){
             continue;
         }

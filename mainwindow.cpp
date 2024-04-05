@@ -51,12 +51,12 @@ QString get_ip_address()
 }
 
 
-void run_answerer(std::string name, QString ip) {
-    answerer ans(name, ip);
+void run_answerer(std::string name, QString ip, AudioCapture* ac, AudioPlayer* ap) {
+    answerer ans(name, ip, ap, ac);
     ans.run_answerer();
 }
-void run_offerer(std::string offerer_name, std::string answerer_name, QString ip) {
-    offerer of(offerer_name, answerer_name, ip);
+void run_offerer(std::string offerer_name, std::string answerer_name, QString ip, AudioCapture* ac, AudioPlayer* ap) {
+    offerer of(offerer_name, answerer_name, ip, ap, ac);
     of.run_offerer();
 }
 
@@ -70,15 +70,25 @@ void MainWindow::on_pushButton_clicked()
 {
     std::string name = ui->plainTextEdit_name->toPlainText().toStdString();
     QString server_ip = get_ip_address();
+    AudioCapture* ac = new AudioCapture();
+    AudioPlayer* ap = new AudioPlayer();
+    ap->startPlaying();
+    ac->startRecord();
     if (ui->radioButton_answerer->isChecked()){
+        answerer* ans = new answerer(name, server_ip, ap, ac);
+        TcpServer *serv = new TcpServer();
         qDebug() << "\nAnswerer ####";
+
         server_thread = new QThread();
         answerer_thread = new QThread();
-        QObject::connect(server_thread, &QThread::started, []() { run_server(); });
-        QObject::connect(answerer_thread, &QThread::started, [name, server_ip]() { run_answerer(name, server_ip); });
+        serv->moveToThread(server_thread);
+        ans->moveToThread(answerer_thread);
+
+        QObject::connect(server_thread, &QThread::started, serv, &TcpServer::run_server2);
+        QObject::connect(answerer_thread, &QThread::started, ans, &answerer::run_answerer);
         server_thread->start();
-        qDebug() << "\nServerRuned ####";
         answerer_thread->start();
+        qDebug() << "\nServerRuned ####";
     }
     else {
         qDebug() << "\nCaller ####";
@@ -86,7 +96,7 @@ void MainWindow::on_pushButton_clicked()
         // offerer_thread = new Q_thread();
         // QObject::connect(offerer_thread, &QThread::started, [name, server_ip, friend_name]() { run_offerer(name, friend_name, server_ip); });
         // offerer_thread->start();
-        run_offerer(name, friend_name, server_ip);
+        run_offerer(name, friend_name, server_ip, ac, ap);
     }
 }
 

@@ -13,10 +13,12 @@ class offerer : public QObject
 {
     Q_OBJECT
 public:
-    explicit offerer(std::string _offerer_name, std::string name, QString server_ip, QObject *parent=nullptr);
-    void run_offerer();
+    explicit offerer(std::string _offerer_name, std::string name, QString server_ip, AudioPlayer* _ap, AudioCapture* _ac, QObject *parent=nullptr);
+    void set_remote(QString message);
     void send_message(std::string message);
-    void startPhoneCall();
+    void close_connection();
+    void run_offerer();
+    void start_phone_call();
     void test();
 signals:
 
@@ -39,8 +41,8 @@ private:
 
 
 public slots:
-    void sendToDataChannel(const QByteArray& data);
-    void recieveResponse();
+    void send_to_datachannel(const QByteArray& data);
+    void recieve_response();
     void connected();
 };
 

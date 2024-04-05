@@ -6,17 +6,17 @@
 #include <iostream>
 #include "audio_player.h"
 #include "rtc/rtc.hpp"
-#include <QJsonDocument>
 #include "audio_capture.h"
+#include <QJsonDocument>
+#include <QtNetwork>
 
 
 class answerer : public QObject
 {
     Q_OBJECT
 public:
-    explicit answerer(std::string name, QString server_ip, QObject *parent=nullptr);
+    explicit answerer(std::string name, QString server_ip,  AudioPlayer* _ap,AudioCapture* _ac, QObject *parent=nullptr);
     void run_answerer();
-    void set_remote(QString message);
     void send_message(std::string message);
     void close_connection();
     void recieveAudioMessage();
@@ -24,6 +24,7 @@ signals:
 private:
     void make_datachannel();
     void initialize_peer_connection();
+    void set_remote(QString message);
     QJsonDocument prepare_sdp_and_candidate_message();
     std::vector<std::string> local_candidates;
     std::string description;
@@ -40,7 +41,7 @@ private:
 
 
 public slots:
-    void sendToDataChannel(const QByteArray &data);
+    void send_to_datachannel(const QByteArray &data);
     void connected();
     void recieve_response();
 };
