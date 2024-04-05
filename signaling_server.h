@@ -25,7 +25,7 @@ public:
     void handle_requests(std::string message, QTcpSocket *socket);
     Client* find_user_by_name(std::string name);
     void send_response(std::string response, QTcpSocket *socket);
-    std::vector<std::string> extract_command_info(std::string data, std::string message);
+    std::vector<std::string> split(std::string str, char sep);
 private slots:
     void receive_message();
     // void connected();

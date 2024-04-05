@@ -47,7 +47,6 @@ void answerer::run_answerer(){
     rtc::InitLogger(rtc::LogLevel::Warning);
     initialize_peer_connection();    
     std::cout << "\nAnswerer 2";
-    shared_ptr<rtc::DataChannel> dc;
     pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
         std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
         dc = _dc;

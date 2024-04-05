@@ -12,19 +12,12 @@ struct Client;
 
 TcpServer::TcpServer() : QObject(), server(new QTcpServer()) {}
 
-std::vector<std::string> TcpServer::extract_command_info(std::string data,std::string message){
-    std::istringstream iss(data);
+std::vector<std::string> TcpServer::split(std::string str, char sep){
+    std::istringstream iss(str);
     std::vector<std::string> words;
     std::string word;
-    if(message.compare("connect") == 0){
-        while (std::getline(iss, word, ' ')) {
-            words.push_back(word);
-        }
-    }
-    else{
-        while (std::getline(iss, word, ',')) {
-            words.push_back(word);
-        }
+    while (std::getline(iss, word, sep)) {
+        words.push_back(word);
     }
     return words;
 }
@@ -44,7 +37,7 @@ void TcpServer::send_response(std::string response,QTcpSocket* socket){
 
 void TcpServer::handle_requests(std::string message,QTcpSocket* socket){
     if(strncmp(message.c_str(),"CONNECT",7) ==0){
-        std::vector<std::string> words = extract_command_info(message,"connect");
+        std::vector<std::string> words = split(message,' ');
         std::string address = socket->peerAddress().toString().toStdString();
         int port = socket->peerPort();
         Client* new_client = new Client;
@@ -53,13 +46,6 @@ void TcpServer::handle_requests(std::string message,QTcpSocket* socket){
         new_client->address = address;
         new_client->socket = socket;
         clients.push_back(new_client);
-    }
-    else if(strncmp(message.c_str(),"CALL",4)==0){
-        int response_port;
-        std::vector<std::string> words = extract_command_info(message,"call");
-        Client* reciever = find_user_by_name(words[1]);
-        std::string response = "RESPONSE," + words[2] + "," + words[3];
-        send_response(response,reciever->socket);
     }
     else{
         QString q_string_message = QString::fromStdString(message);
