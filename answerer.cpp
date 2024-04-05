@@ -10,10 +10,11 @@
 using std::shared_ptr;
 // #include <rtc/rtc.hpp>
 
-answerer::answerer(std::string name,std::string role,AudioPlayer* _ap, QObject *parent)
+answerer::answerer(std::string name,std::string role,AudioPlayer* _ap,AudioCapture* _ac, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
     ap = _ap;
+    ac = _ac;
     _name = name;
     phone_connected = false;
 
@@ -59,17 +60,20 @@ void answerer::runAnswerer(){
     pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
         std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
         dc = _dc;
-        phone_connected =true;
+
 
         dc->onClosed(
             [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
 
         dc->onMessage([this](auto data) {
-            if (std::holds_alternative<std::string>(data)) {
-                ap->playData(std::get<std::string>(data));
-                // std::cout << "[Received message: " << std::get<std::string>(data) << "]"
-                          // << std::endl;
+            // qDebug() << "got you";
+            if (std::holds_alternative<std::vector<std::byte>>(data)) {
+                // auto d = std::get<std::vector<std::byte>>(data);
+                // QByteArray byteArray(reinterpret_cast<const char*>(d.data()), d.size());
+                audio_message = std::get<std::vector<std::byte>>(data);
+                phone_connected =true;
             }
+            // ap->playData(byteArray.constData());
         });
     });
     // QThread::sleep(1);
@@ -77,10 +81,16 @@ void answerer::runAnswerer(){
     QJsonDocument json_message = prepare_sdp_and_candidate_message();
     // QThread::sleep(1);
     socket->write(json_message.toJson().toStdString().c_str());
-    socket->waitForReadyRead();
-    while( !phone_connected){
-        continue;
+    socket->waitForBytesWritten();
+    // socket->waitForReadyRead();
+    while(1){
+        while( !phone_connected){
+            continue;
+        }
+        ap->playData(audio_message);
+        phone_connected = false;
     }
+
 
 
     //send message in slot function !

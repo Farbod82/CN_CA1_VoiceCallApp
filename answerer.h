@@ -8,6 +8,8 @@
 #include "client.h"
 #include "rtc/rtc.hpp"
 #include <QJsonDocument>
+#include "audio_capture.h"
+
 
 class answerer : public QObject
 {
@@ -19,7 +21,8 @@ public:
     void send_message(std::string message);
     void close_connection();
     void set_remote(QString message);
-    explicit answerer(std::string name, std::string role, AudioPlayer *_ap, QObject *parent=nullptr);
+    explicit answerer(std::string name, std::string role, AudioPlayer *_ap,AudioCapture *_ac, QObject *parent=nullptr);
+    void recieveAudioMessage();
 signals:
 private:
     std::vector<std::string> local_candidates;
@@ -35,6 +38,8 @@ private:
     std::string _name;
     bool phone_connected;
     AudioPlayer* ap;
+    AudioCapture* ac;
+    std::vector<std::byte> audio_message;
 
 
 public slots:

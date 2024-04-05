@@ -10,7 +10,7 @@ class AudioPlayer: public QObject
 public:
     explicit AudioPlayer(QObject *parent = nullptr);
     void startPlaying();
-    void playData(std::string message);
+    void playData(std::vector<std::byte> message);
 private:
     QMediaDevices* devices;
     QIODevice* io;

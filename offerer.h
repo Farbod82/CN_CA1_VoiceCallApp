@@ -39,7 +39,7 @@ private:
 
 
 public slots:
-    void sendToDataChannel(const QByteArray &data);
+    void sendToDataChannel(const QByteArray& data);
     void recieveResponse();
     void connected();
 };

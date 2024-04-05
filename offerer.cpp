@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <iterator> // for std::begin / end
 
 // #include <rtc/rtc.hpp>
 
@@ -17,6 +18,7 @@ offerer::offerer(std::string _offerer_name,std::string _answerer_name,AudioCaptu
     // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
     // myclient->runClient2();
     ac = _ac;
+    ac->startRecord();
     phone_connected = false;
     offerer_name = _offerer_name;
     answerer_name = _answerer_name;
@@ -38,7 +40,19 @@ void offerer::test(){
 void offerer::sendToDataChannel(const QByteArray& data){
     if (phone_connected){
     // dc->sendBuffer(data);
-        dc->send(QString::fromUtf8(data).toStdString());
+        // std::string d = QString::fromUtf8(data).toStdString();
+        // dc->send();
+        // const char* charBuffer = data.constData();
+        // dc->send(data.constData());
+        // std::vector<std::byte> d(data.begin(), data.end());
+        std::vector<char> d(data.begin(), data.end());
+        std::vector<std::byte> bytes;
+        for (char &c : d) {
+            bytes.push_back(static_cast<std::byte>(c));
+        }
+
+        dc->sendBuffer(bytes);
+
     }
 }
 

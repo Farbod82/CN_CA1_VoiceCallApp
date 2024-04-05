@@ -27,10 +27,10 @@ void::AudioPlayer::startPlaying(){
     io = audioSink->start();
 }
 
-void AudioPlayer::playData(std::string message){
-    QString str = QString::fromStdString(message);
-    QByteArray data = str.toUtf8();
-    int len = data.size();
+void AudioPlayer::playData(std::vector<std::byte> message){
+    // QString str = QString::fromStdString(message);
+    QByteArray* data = new QByteArray(reinterpret_cast<const char*>(message.data()), message.size());
+    int len = message.size();
     if(len)
-        io->write(data.constData(),len);
+        io->write(*data,len);
 }

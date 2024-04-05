@@ -17,13 +17,20 @@ using std::shared_ptr;
 void AudioCapture::audioSourceData(QIODevice * device, QAudioSource* src){
     qint64 len = src->bytesAvailable();
 
-    const int BufferSize = 1024;
+    const int BufferSize = 4096;
     // if (len > BufferSize)
     len = BufferSize;
 
     QByteArray buffer(len, 0);
     qint64 l = device->read(buffer.data(), len);
     QByteArray buff = QByteArray::fromRawData(buffer,l);
+    // for (int i =0; i <buff.size();i++){
+    //     qDebug() << buff.at(i);
+    // }
+    // bool isAllZero = (buff.count(0) == buff.size());
+    // if(!isAllZero)
+    // std::string data = QString::fromUtf8(buff).toStdString();
+    // qDebug() << data.size();
     emit bufferReady(buff);
 }
 

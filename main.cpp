@@ -19,8 +19,9 @@ void runClient2() {
     // c->runClient2();
     // c->sendMessage("CONNECT Ali");
     AudioPlayer* ap = new AudioPlayer();
+    AudioCapture* ac = new AudioCapture();
     ap->startPlaying();
-    answerer ans("Ahmad","answerer",ap);
+    answerer ans("Ahmad","answerer",ap,ac);
     ans.runAnswerer();
 
     // std::cout << "#########################################\n";
