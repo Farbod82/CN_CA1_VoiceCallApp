@@ -2,6 +2,7 @@
 #define AUDIO_CAPTURE_H
 
 #include <QAudioSource>
+#include <QMediaDevices>
 #include <QObject>
 
 class AudioCapture : public QObject
@@ -13,8 +14,14 @@ public:
     void audioSourceData(QIODevice * device, QAudioSource* src);
 
     void startRecord();
+    QByteArray readAny();
 signals:
     void bufferReady(const QByteArray& buffer);
+private:
+    QMediaDevices* device;
+    QAudioSource* audio_src;
+    QIODevice* IO;
+
 };
 
 #endif // AUDIO_CAPTURE_H

@@ -37,12 +37,14 @@ private:
     QTcpSocket* socket;
     std::string _name;
     bool phone_connected;
+    bool mic_connected;
     AudioPlayer* ap;
     AudioCapture* ac;
     std::vector<std::byte> audio_message;
 
 
 public slots:
+    void sendToDataChannel(const QByteArray &data);
     void recieveResponse();
     void connected();
 };

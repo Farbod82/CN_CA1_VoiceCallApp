@@ -17,7 +17,7 @@ answerer::answerer(std::string name,std::string role,AudioPlayer* _ap,AudioCaptu
     ac = _ac;
     _name = name;
     phone_connected = false;
-
+    mic_connected = false;
     // myclient = new TcpClient(name,role);
     // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
     // myclient->runClient2();
@@ -50,13 +50,35 @@ void answerer::recieveResponse(){
     }
 }
 
+
+void answerer::sendToDataChannel(const QByteArray& data){
+    if (phone_connected){
+        // dc->sendBuffer(data);
+        // std::string d = QString::fromUtf8(data).toStdString();
+        // dc->send();
+        // const char* charBuffer = data.constData();
+        // dc->send(data.constData());
+        // std::vector<std::byte> d(data.begin(), data.end());
+        // qDebug() << "im sending as answerer";
+        std::vector<char> d(data.begin(), data.end());
+        std::vector<std::byte> bytes;
+        for (char &c : d) {
+            bytes.push_back(static_cast<std::byte>(c));
+        }
+
+        dc->sendBuffer(bytes);
+
+    }
+}
+
 void answerer::runAnswerer(){
     role = "answerer";
     std::cout << "\nAnswerer 1";
     rtc::InitLogger(rtc::LogLevel::Warning);
     initialize_peer_connection();    
     std::cout << "\nAnswerer 2";
-    shared_ptr<rtc::DataChannel> dc;
+    // shared_ptr<rtc::DataChannel> dc;
+
     pc->onDataChannel([&](shared_ptr<rtc::DataChannel> _dc) {
         std::cout << "[Got a DataChannel with label: " << _dc->label() << "]" << std::endl;
         dc = _dc;
@@ -83,11 +105,17 @@ void answerer::runAnswerer(){
     socket->write(json_message.toJson().toStdString().c_str());
     socket->waitForBytesWritten();
     // socket->waitForReadyRead();
+    mic_connected = true;
+
+    ac->startRecord();
     while(1){
+        connect(ac,&AudioCapture::bufferReady,this,&answerer::sendToDataChannel);
         while( !phone_connected){
             continue;
         }
         ap->playData(audio_message);
+        QByteArray mic_audio = ac->readAny();
+        sendToDataChannel(mic_audio);
         phone_connected = false;
     }
 

@@ -39,29 +39,45 @@ void AudioCapture::audioSourceData(QIODevice * device, QAudioSource* src){
 AudioCapture::AudioCapture(QObject *parent)
     : QObject{parent}
 {
-
+    // device = new QMediaDevices();
+    // audio_src = new QAudioSource();
 }
 
 void AudioCapture::startRecord(){
-    QMediaDevices* devices = new QMediaDevices{this};
+    device = new QMediaDevices{this};
     QAudioFormat format;
     format.setSampleRate(8000);
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::Int16);
     // shared_ptr<rtc::DataChannel> _dc;
-    QAudioSource* audioSource = new QAudioSource{devices->defaultAudioInput(),
+    audio_src = new QAudioSource{device->defaultAudioInput(),
                                                  format,nullptr};
-    audioSource->reset();
-    auto io = audioSource->start();
-    if(!io->open(QIODevice::ReadOnly))
+
+    audio_src->reset();
+    IO = audio_src->start();
+    if(!IO->open(QIODevice::ReadOnly))
     {
         qDebug() << "Couldn't open AudioSource!";
     }
     else
     {
-        connect(io,&QIODevice::readyRead,[&,audioSource,io]()
+        connect(IO,&QIODevice::readyRead,[&]()
                 {
-                    audioSourceData(io,audioSource);
+                    audioSourceData(IO,audio_src);
                 });
     }
+}
+
+
+QByteArray AudioCapture::readAny(){
+    qint64 len = audio_src->bytesAvailable();
+
+    const int BufferSize = 4096;
+    // if (len > BufferSize)
+    len = BufferSize;
+
+    QByteArray buffer(len, 0);
+    qint64 l = IO->read(buffer.data(), len);
+    QByteArray buff = QByteArray::fromRawData(buffer,l);
+    return buff;
 }

@@ -7,18 +7,19 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <iterator> // for std::begin / end
 
 // #include <rtc/rtc.hpp>
 
-offerer::offerer(std::string _offerer_name,std::string _answerer_name,AudioCapture* _ac, QObject *parent)
+offerer::offerer(std::string _offerer_name,std::string _answerer_name,AudioCapture* _ac,AudioPlayer* _ap, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
     // myclient = new TcpClient(name,role);
     // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
     // myclient->runClient2();
+    ap = _ap;
     ac = _ac;
     ac->startRecord();
+    audio_connected = false;
     phone_connected = false;
     offerer_name = _offerer_name;
     answerer_name = _answerer_name;
@@ -38,6 +39,8 @@ void offerer::test(){
 
 }
 void offerer::sendToDataChannel(const QByteArray& data){
+    // qDebug() << "im sending as offerer";
+
     if (phone_connected){
     // dc->sendBuffer(data);
         // std::string d = QString::fromUtf8(data).toStdString();
@@ -111,12 +114,24 @@ void offerer::runOfferer(std::string answerer_name){
     socket->write(json_message.toJson().toStdString().c_str());
     socket->waitForReadyRead();
     // make_datachannel();
-    while( ! phone_connected){
-        continue;
-    }
-    ac->startRecord();
-    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::sendToDataChannel);
+    // while( ! phone_connected){
+    //     continue;
+    // }
 
+    AudioCapture::connect(ac,&AudioCapture::bufferReady,this,&offerer::sendToDataChannel);
+    while(1){
+
+        while(! phone_connected){
+            continue;
+        }
+        QByteArray mic_data = ac->readAny();
+        sendToDataChannel(mic_data);
+        while(! audio_connected){
+            continue;
+        }
+        ap->playData(audio_message);
+
+    }
     // socket->waitForReadyRead();
     // dc->send("hellloooooo");
 
@@ -153,9 +168,12 @@ void offerer::make_datachannel(){
     dc->onClosed(
         [&]() { std::cout << "[DataChannel closed: " << dc->label() << "]" << std::endl; });
 
-    dc->onMessage([](auto data) {
-        if (std::holds_alternative<std::string>(data)) {
-            std::cout << "[Received: " << std::get<std::string>(data);
+    dc->onMessage([&](auto data) {
+        if (std::holds_alternative<std::vector<std::byte>>(data)) {
+            // auto d = std::get<std::vector<std::byte>>(data);
+            // QByteArray byteArray(reinterpret_cast<const char*>(d.data()), d.size());
+            audio_message = std::get<std::vector<std::byte>>(data);
+            audio_connected = true;
         }
     });
 }

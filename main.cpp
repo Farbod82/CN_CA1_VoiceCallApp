@@ -66,8 +66,10 @@ int main(int argc, char *argv[])
     // clientThread2.start();
     // QThread::msleep(1000);
     AudioCapture* ac = new AudioCapture();
+    AudioPlayer* ap = new AudioPlayer();
+    ap->startPlaying();
     // ac->startRecord();
-    offerer of("Farbod","Ahmad",ac);
+    offerer of("Farbod","Ahmad",ac,ap);
     // AudioCapture ac;
     of.runOfferer("Ahmad");
     MainWindow w;
