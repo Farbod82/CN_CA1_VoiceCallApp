@@ -13,9 +13,6 @@
 offerer::offerer(std::string _offerer_name,std::string _answerer_name, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
-    // myclient = new TcpClient(name,role);
-    // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
-    // myclient->runClient2();
     offerer_name = _offerer_name;
     answerer_name = _answerer_name;
     connect(socket, &QTcpSocket::connected, this, &offerer::connected);
@@ -74,7 +71,7 @@ QJsonDocument offerer::prepare_sdp_and_candidate_message(){
     return json_message;
 }
 
-void offerer::runOfferer(std::string answerer_name){
+void offerer::runOfferer(){
     rtc::InitLogger(rtc::LogLevel::Warning);
     // std::cout << "\n Offere 1";
     initialize_peer_connection();
@@ -107,11 +104,6 @@ void offerer::set_remote(QString message){
         // std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
     }
     qDebug() << "set offerer done";
-    // make_datachannel();
-    // if (role == "answerer"){
-    //     QJsonDocument json_message = prepare_sdp_and_candidate_message();
-    //     myclient->sendMessage(json_message.toJson().toStdString());
-    // }
 
 }
 

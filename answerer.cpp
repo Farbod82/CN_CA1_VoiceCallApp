@@ -8,16 +8,11 @@
 #include <QJsonObject>
 
 using std::shared_ptr;
-// #include <rtc/rtc.hpp>
 
-answerer::answerer(std::string name,std::string role, QObject *parent)
+answerer::answerer(std::string name, QObject *parent)
     : QObject{parent},socket(new QTcpSocket())
 {
     _name = name;
-
-    // myclient = new TcpClient(name,role);
-    // connect(myclient, &TcpClient::sdpSet, this, &offerer::set_remote);
-    // myclient->runClient2();
     connect(socket, &QTcpSocket::connected, this, &answerer::connected);
     connect(socket,&QTcpSocket::readyRead,this, &answerer::recieveResponse);
     socket->connectToHost(QHostAddress::LocalHost, 8080, QIODevice::ReadWrite);
@@ -48,7 +43,6 @@ void answerer::recieveResponse(){
 }
 
 void answerer::runAnswerer(){
-    role = "answerer";
     std::cout << "\nAnswerer 1";
     rtc::InitLogger(rtc::LogLevel::Warning);
     initialize_peer_connection();    
@@ -104,10 +98,7 @@ void answerer::set_remote(QString message){
         // qDebug() << "Element" << i << ":" << candidate_array.at(i).toString();
         // std::cout << "Element" << i << ":" << candidate_array.at(i).toString().toStdString();
     }
-    // if (role == "answerer"){
     qDebug() << "set answerer done";
-    //     myclient->sendMessage(json_message.toJson().toStdString());
-    // }
 }
 
 
