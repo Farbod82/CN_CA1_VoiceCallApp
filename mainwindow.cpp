@@ -110,6 +110,8 @@ void MainWindow::on_radioButton_answerer_toggled(bool checked)
     }
     else{
         ui->label->setText("");
+        ui->plainTextEdit_ip->show();
+        ui->plainTextEdit_friend_name->show();
     }
 }
 
